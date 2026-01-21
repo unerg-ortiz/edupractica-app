@@ -13,6 +13,15 @@ Edupractica es una aplicación Next.js moderna con soporte para internacionaliza
 - **Validación**: Zod
 - **i18n**: Enrutamiento dinámico `[lang]`
 
+## Ubicación de Archivos Generados por IA
+> [!NOTE]
+> Para mantener limpio el código fuente, sigue estas reglas estrictas para archivos generados por IA:
+
+- **Pruebas y Tests**: Todo código generado únicamente para pruebas debe ir en `.vibe/tests/`. Si el directorio no existe, CRÉALO.
+- **Documentación**: Documentos, notas o explicaciones extendidas generadas van en `.vibe/docs/`.
+- **Otros**: Cualquier archivo que no sea parte del producto final debe ubicarse dentro de `.vibe/`.
+- **Excepción**: Los archivos de implementación real (features, bugfixes) sí van en su estructura correspondiente (`app/`, `components/`, etc).
+
 ## Estructura de Directorios
 - `app/[lang]/`: Rutas de la aplicación localizadas.
 - `components/`: Componentes reutilizables.
