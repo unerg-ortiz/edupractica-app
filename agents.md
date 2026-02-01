@@ -40,6 +40,9 @@ Se utiliza el patrón **Model-View-ViewModel** donde:
 > [!IMPORTANT]
 > **El código debe estar en INGLÉS.**
 > Aunque la documentación esté en español, todas las variables, funciones, comentarios y commits deben ser en inglés.
+>
+> **La comunicación (Chat) debe ser en ESPAÑOL.**
+> Todas las respuestas, explicaciones y comunicaciones con el usuario a través del chat deben realizarse en español, a menos que se solicite explícitamente lo contrario.
 
 ## Comandos
 - `npm run dev`: Iniciar servidor de desarrollo.
