@@ -1,3 +1,47 @@
 {
-    "welcome": "Bienvenido a Edupractica"
+    "welcome": "Bienvenido a Edupractica",
+    "Home": {
+        "title": "Edupractica App"
+    },
+    "Categories": {
+        "title": "Gestionar Categorías",
+        "add": "Agregar Categoría",
+        "search": "Buscar categorías...",
+        "noCategories": "No se encontraron categorías.",
+        "filters": {
+            "all": "Todos",
+            "active": "Activo",
+            "hidden": "Oculto",
+            "archived": "Archivado"
+        },
+        "form": {
+            "newTitle": "Nueva Categoría",
+            "editTitle": "Editar Categoría",
+            "close": "Cerrar",
+            "nameLabel": "Nombre de la Categoría",
+            "namePlaceholder": "ej. Informática",
+            "descriptionLabel": "Descripción",
+            "descriptionPlaceholder": "Resume el contenido de la categoría...",
+            "selectIcon": "Seleccionar Ícono",
+            "activeLabel": "Categoría Activa",
+            "preview": "Vista Previa",
+            "previewName": "Nombre de la Categoría",
+            "previewDescription": "La descripción de la categoría aparecerá aquí...",
+            "cancel": "Cancelar",
+            "save": "Guardar",
+            "available": "Este nombre está disponible y es único."
+        },
+        "item": {
+            "edit": "Editar",
+            "delete": "Eliminar"
+        }
+    },
+    "Admin": {
+        "nav": {
+            "dashboard": "Panel",
+            "categories": "Categorías",
+            "users": "Usuarios",
+            "settings": "Ajustes"
+        }
+    }
 }
