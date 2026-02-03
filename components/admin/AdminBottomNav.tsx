@@ -1,16 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { LayoutGrid, Shapes, Users, Settings } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export const AdminBottomNav = () => {
     const pathname = usePathname();
+    const t = useTranslations('Admin.nav');
 
     const navItems = [
-        { name: 'Dashboard', icon: LayoutGrid, href: '/admin/dashboard' },
-        { name: 'Categories', icon: Shapes, href: '/admin/categories' },
-        { name: 'Users', icon: Users, href: '/admin/users' },
-        { name: 'Settings', icon: Settings, href: '/admin/settings' },
+        { name: t('dashboard'), icon: LayoutGrid, href: '/admin/dashboard' },
+        { name: t('categories'), icon: Shapes, href: '/admin/categories' },
+        { name: t('users'), icon: Users, href: '/admin/users' },
+        { name: t('settings'), icon: Settings, href: '/admin/settings' },
     ];
 
     return (
@@ -20,7 +22,7 @@ export const AdminBottomNav = () => {
                     const isActive = pathname?.includes(item.href);
                     return (
                         <Link
-                            key={item.name}
+                            key={item.href}
                             href={item.href}
                             className={`flex flex-col items-center gap-1 transition-colors ${isActive ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300'
                                 }`}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { useCategoryStore } from '@/store/categoryStore';
 import { CategoryItem } from './CategoryItem';
 import { Search, Plus } from 'lucide-react';
@@ -10,6 +11,7 @@ interface CategoryListProps {
 }
 
 export const CategoryList: React.FC<CategoryListProps> = ({ onAddCategory, onEditCategory }) => {
+    const t = useTranslations('Categories');
     const { categories, searchQuery, filter, setSearchQuery, setFilter, deleteCategory, getFilteredCategories } = useCategoryStore();
 
     const filteredCategories = getFilteredCategories();
@@ -21,7 +23,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ onAddCategory, onEdi
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Search categories..."
+                        placeholder={t('search')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 transition-colors placeholder:text-slate-500"
@@ -33,11 +35,11 @@ export const CategoryList: React.FC<CategoryListProps> = ({ onAddCategory, onEdi
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors whitespace-nowrap ${filter === f
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
                                 }`}
                         >
-                            {f}
+                            {t(`filters.${f}`)}
                         </button>
                     ))}
                 </div>
@@ -46,7 +48,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ onAddCategory, onEdi
             <div className="grid gap-4">
                 {filteredCategories.length === 0 ? (
                     <div className="text-center py-12 text-slate-500">
-                        No categories found.
+                        {t('noCategories')}
                     </div>
                 ) : (
                     filteredCategories.map((category) => (

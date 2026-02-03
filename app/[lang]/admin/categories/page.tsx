@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { CategoryList } from '@/components/admin/categories/CategoryList';
 import { CategoryForm } from '@/components/admin/categories/CategoryForm';
 import { Category } from '@/types/schema';
@@ -9,6 +10,7 @@ import Link from 'next/link';
 import { AdminBottomNav } from '@/components/admin/AdminBottomNav';
 
 export default function CategoriesPage() {
+    const t = useTranslations('Categories');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
 
@@ -36,14 +38,14 @@ export default function CategoriesPage() {
                         <Link href="/admin" className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
                             <ChevronLeft size={24} />
                         </Link>
-                        <h1 className="text-3xl font-bold text-white tracking-tight">Manage Categories</h1>
+                        <h1 className="text-3xl font-bold text-white tracking-tight">{t('title')}</h1>
                     </div>
                     <button
                         onClick={handleAddClick}
                         className="hidden md:flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                     >
                         <Plus size={20} />
-                        <span>Add Category</span>
+                        <span>{t('add')}</span>
                     </button>
                     <button className="md:hidden p-2 text-slate-400">
                         <Settings size={24} />

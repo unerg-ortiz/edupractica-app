@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Category } from '@/types/schema';
 import { Pencil, Trash2 } from 'lucide-react';
 import { getIcon } from './iconMap';
@@ -10,6 +11,8 @@ interface CategoryItemProps {
 }
 
 export const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, onDelete }) => {
+    const t = useTranslations('Categories.item');
+
     return (
         <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between group transition-all hover:bg-slate-800/80 border border-slate-800/50 hover:border-slate-700">
             <div className="flex items-center gap-4">
@@ -25,14 +28,14 @@ export const CategoryItem: React.FC<CategoryItemProps> = ({ category, onEdit, on
                 <button
                     onClick={() => onEdit(category)}
                     className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-                    title="Edit"
+                    title={t('edit')}
                 >
                     <Pencil size={18} />
                 </button>
                 <button
                     onClick={() => category.id && onDelete(category.id)}
                     className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                    title="Delete"
+                    title={t('delete')}
                 >
                     <Trash2 size={18} />
                 </button>

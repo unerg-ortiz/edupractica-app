@@ -15,12 +15,12 @@ interface CategoryState {
 }
 
 const initialCategories: Category[] = [
-    { id: '1', name: 'Mathematics', description: 'Algebra, Geometry, and Calculus', icon: 'Calculator', isActive: true },
-    { id: '2', name: 'Science', description: 'Physics, Biology, and Chemistry', icon: 'FlaskConical', isActive: true },
-    { id: '3', name: 'History', description: 'World history and ancient civilizations', icon: 'BookOpen', isActive: true },
-    { id: '4', name: 'Literature', description: 'Classical authors and modern works', icon: 'Book', isActive: true },
-    { id: '5', name: 'Technology', description: 'Programming, AI, and digital skills', icon: 'Laptop', isActive: true },
-    { id: '6', name: 'Geography', description: 'Cartography and global studies', icon: 'Globe', isActive: true },
+    { id: '1', name: 'Matemáticas', description: 'Álgebra, Geometría y Cálculo', icon: 'Calculator', isActive: true },
+    { id: '2', name: 'Ciencias', description: 'Física, Biología y Química', icon: 'FlaskConical', isActive: true },
+    { id: '3', name: 'Historia', description: 'Historia mundial y civilizaciones antiguas', icon: 'BookOpen', isActive: true },
+    { id: '4', name: 'Literatura', description: 'Autores clásicos y obras modernas', icon: 'Book', isActive: true },
+    { id: '5', name: 'Tecnología', description: 'Programación, IA y habilidades digitales', icon: 'Laptop', isActive: true },
+    { id: '6', name: 'Geografía', description: 'Cartografía y estudios globales', icon: 'Globe', isActive: true },
 ];
 
 export const useCategoryStore = create<CategoryState>((set, get) => ({
