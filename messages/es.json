@@ -1,3 +1,43 @@
 {
-    "welcome": "Bienvenido a Edupractica"
+    "welcome": "Bienvenido a Edupractica",
+    "Login": {
+        "welcome_message": "Bienvenido",
+        "email_label": "Correo Electrónico",
+        "password_label": "Contraseña",
+        "remember_me": "Recordarme",
+        "login_button": "Iniciar Sesión",
+        "loading": "Cargando...",
+        "no_account": "¿No tienes una cuenta?",
+        "sign_up": "Regístrate",
+        "invalid_email": "Dirección de correo inválida",
+        "password_min_length": "La contraseña debe tener al menos 6 caracteres",
+        "unexpected_error": "Ocurrió un error inesperado"
+    },
+    "ChallengeEditor": {
+        "title": "Editor de Retos de Clasificación",
+        "preview": "Vista Previa",
+        "all_buckets": "Todos los Cubos",
+        "item_pool": "Banco de Ítems",
+        "organize_title": "Organizar Ítems",
+        "organize_subtitle": "Arrastra y suelta los ítems en sus categorías correctas.",
+        "category_running": "Correr",
+        "category_jumping": "Saltar",
+        "save_challenge": "Guardar Reto",
+        "manage_feedback": "Gestionar Feedback",
+        "item_apple": "Manzana",
+        "item_fast": "Rápido"
+    },
+    "FeedbackModal": {
+        "title": "Pistas y Feedback",
+        "custom_messages_for": "Mensajes personalizados para",
+        "failure_message_label": "Mensaje de Fallo",
+        "supports_markdown": "Soporta markdown",
+        "success_hint_label": "Pista de Éxito (Opcional)",
+        "max_hints_label": "Máx. pistas por intento",
+        "max_hints_help": "Limita la ayuda para fomentar la reflexión.",
+        "cancel": "Cancelar",
+        "apply_changes": "Aplicar Cambios",
+        "default_failure": "¡Ups! No es del todo correcto. Recuerda, un sustantivo es una persona, lugar o cosa. ¿Es '{item}' una acción?",
+        "default_success": "¡Buen trabajo! {item} es una fruta."
+    }
 }

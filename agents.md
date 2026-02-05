@@ -40,8 +40,40 @@ Se utiliza el patrón **Model-View-ViewModel** donde:
 > [!IMPORTANT]
 > **El código debe estar en INGLÉS.**
 > Aunque la documentación esté en español, todas las variables, funciones, comentarios y commits deben ser en inglés.
+>
+> **La comunicación (Chat) debe ser en ESPAÑOL.**
+> Todas las respuestas, explicaciones y comunicaciones con el usuario a través del chat deben realizarse en español, a menos que se solicite explícitamente lo contrario.
 
 ## Comandos
 - `npm run dev`: Iniciar servidor de desarrollo.
 - `npm run build`: Construir para producción.
 - `npm run lint`: Verificar calidad de código.
+
+## Reglas de Implementación de Features
+
+Cuando se te pida implementar una nueva funcionalidad (feature), sigue estos pasos estrictos:
+
+1. **Análisis y Diseño**:
+   - Revisa la documentación existente (`docs/`) para entender el contexto.
+   - Si es necesario, crea un documento de diseño en `.vibe/docs/` con el título `design-feature-nombre.md`.
+   - Define los componentes, hooks y servicios necesarios.
+
+2. **Implementación**:
+   - Crea los archivos en su ubicación correcta (`app/`, `components/`, `hooks/`, `services/`).
+   - **IMPORTANTE**: Todo el código debe estar en **INGLÉS** (variables, funciones, comentarios).
+   - Sigue el patrón MVVM establecido.
+
+3. **Pruebas**:
+   - Crea los archivos de prueba en `.vibe/tests/`.
+   - Escribe pruebas unitarias para los nuevos hooks y servicios.
+   - Si es necesario, crea componentes de prueba en `.vibe/tests/components/`.
+
+4. **Documentación**:
+   - Actualiza la documentación relevante en `docs/` si es necesario.
+   - Asegúrate de que los archivos en `.vibe/docs/` estén actualizados.
+
+5. **Revisión**:
+   - Verifica que el código cumpla con las reglas de linting (`npm run lint`).
+   - Asegúrate de que todas las pruebas pasen (`npm run test`).
+   - Verifica que la aplicación funcione correctamente (`npm run dev`).
+
