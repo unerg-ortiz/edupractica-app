@@ -4,36 +4,59 @@
         "title": "Edupractica App"
     },
     "Categories": {
-        "title": "Gestionar Categorías",
-        "add": "Agregar Categoría",
-        "search": "Buscar categorías...",
-        "noCategories": "No se encontraron categorías.",
+        "panelTitle": "PANEL DE CONTROL",
+        "title": "Categorías",
+        "searchPlaceholder": "Buscar categoría...",
         "filters": {
-            "all": "Todos",
-            "active": "Activo",
-            "hidden": "Oculto",
-            "archived": "Archivado"
+            "all": "Todo",
+            "date": "Fecha",
+            "topics": "Temas",
+            "status": "Estado"
         },
+        "duplicates": {
+            "title": "Posibles duplicados",
+            "count": "{count} coincidencias encontradas",
+            "merge": "COMBINAR"
+        },
+        "allCategories": {
+            "title": "Todas las categorías",
+            "total": "Total: {count}"
+        },
+        "status": {
+            "updatedToday": "Actualizado hoy",
+            "noChanges": "Sin cambios",
+            "pendingReview": "Revisión pendiente",
+            "active": "Activo"
+        },
+        "add": "Agregar Categoría",
+        "noCategories": "No se encontraron categorías.",
         "form": {
             "newTitle": "Nueva Categoría",
             "editTitle": "Editar Categoría",
             "close": "Cerrar",
             "nameLabel": "Nombre de la Categoría",
-            "namePlaceholder": "ej. Informática",
-            "descriptionLabel": "Descripción",
-            "descriptionPlaceholder": "Resume el contenido de la categoría...",
+            "namePlaceholder": "ej. Matemáticas Avanzadas",
+            "descriptionLabel": "Descripción Breve",
+            "descriptionPlaceholder": "Describe el contenido de esta categoría...",
             "selectIcon": "Seleccionar Ícono",
+            "iconLabel": "Ícono de Categoría",
             "activeLabel": "Categoría Activa",
+            "visibilityLabel": "Visible para estudiantes",
             "preview": "Vista Previa",
             "previewName": "Nombre de la Categoría",
             "previewDescription": "La descripción de la categoría aparecerá aquí...",
             "cancel": "Cancelar",
-            "save": "Guardar",
-            "available": "Este nombre está disponible y es único."
-        },
-        "item": {
-            "edit": "Editar",
-            "delete": "Eliminar"
+            "save": "Guardar Cambios",
+            "saveNew": "Crear Categoría",
+            "available": "✓ Este nombre está disponible y es único",
+            "duplicate": "⚠ Ya existe una categoría con este nombre",
+            "checking": "Verificando disponibilidad...",
+            "confirmSave": "¿Guardar cambios?",
+            "confirmMessage": "Los cambios se reflejarán inmediatamente en todas las vistas de profesores y estudiantes.",
+            "confirmButton": "Sí, guardar",
+            "cancelButton": "No, cancelar",
+            "savedSuccess": "✓ Categoría guardada exitosamente",
+            "updatedSuccess": "✓ Categoría actualizada exitosamente"
         }
     },
     "Admin": {
