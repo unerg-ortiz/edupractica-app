@@ -55,5 +55,27 @@
         "orContinueWith": "O CONTINÚA CON",
         "noAccount": "¿No tienes una cuenta?",
         "register": "Regístrate"
+    },
+    "Profile": {
+        "title": "Privacidad y Seguridad",
+        "configuration": "CONFIGURACIÓN DE CUENTA",
+        "notifications": "NOTIFICACIONES",
+        "dangerZone": {
+            "title": "ZONA DE PELIGRO",
+            "warning": "Una vez que elimines tu cuenta, no hay vuelta atrás. Perderás todo tu progreso académico, certificados y acceso a la plataforma de forma permanente.",
+            "cardTitle": "Darse de baja",
+            "cardSubtitle": "Confirmación de identidad requerida para proceder.",
+            "inputLabel": "Escribe 'BORRAR' para habilitar la eliminación",
+            "inputPlaceholder": "BORRAR",
+            "deleteButton": "Eliminar cuenta permanentemente",
+            "keepAccount": "Mantener mi cuenta activa"
+        },
+        "modal": {
+            "title": "¿Estás seguro de que quieres eliminar tu cuenta?",
+            "description": "Esta acción es permanente y cumple con la normativa GDPR. Perderás el acceso a todos tus cursos, certificados y progreso educativo de forma inmediata. Tus datos personales serán borrados de nuestros servidores.",
+            "checkbox": "Entiendo que la eliminación es definitiva y que mi información no podrá ser recuperada bajo ninguna circunstancia.",
+            "confirmButton": "Confirmar Eliminación",
+            "cancelButton": "Cancelar y volver"
+        }
     }
 }
