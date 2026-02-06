@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CategorySchema, Category } from '@/types/schema';
 import { IconPicker } from './IconPicker';
@@ -19,7 +19,6 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData, onClose
         register,
         handleSubmit,
         control,
-        watch,
         formState: { errors },
     } = useForm<Category>({
         resolver: zodResolver(CategorySchema),
@@ -31,9 +30,9 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData, onClose
         },
     });
 
-    const selectedIconName = watch('icon') || 'BookOpen';
-    const nameValue = watch('name');
-    const descriptionValue = watch('description');
+    const selectedIconName = useWatch({ control, name: 'icon' }) || 'BookOpen';
+    const nameValue = useWatch({ control, name: 'name' });
+    const descriptionValue = useWatch({ control, name: 'description' });
     const IconPreview = iconMap[selectedIconName];
 
     const onSubmit = (data: Category) => {

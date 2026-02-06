@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, MoreHorizontal, AlertTriangle, Trash2, X } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, AlertTriangle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx'; // Assuming clsx is available based on package.json
 

@@ -19,7 +19,6 @@ import {
     ChevronUp
 } from 'lucide-react';
 import clsx from 'clsx';
-import Link from 'next/link';
 
 // Mock Data Types
 type CategoryStatus = 'updatedToday' | 'noChanges' | 'pendingReview' | 'active';
@@ -41,7 +40,6 @@ interface DuplicateMatch {
 
 export default function AdminCategoriesPage() {
     const t = useTranslations('Categories');
-    const tNav = useTranslations('Admin.nav'); // Assuming this exists from previous steps, otherwise I'll fallback
 
     const [isDuplicatesOpen, setIsDuplicatesOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
