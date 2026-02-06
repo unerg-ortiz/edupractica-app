@@ -43,5 +43,17 @@
             "users": "Usuarios",
             "settings": "Ajustes"
         }
+    },
+    "Auth": {
+        "welcome": "Bienvenido",
+        "subText": "Ingresa a tu cuenta educativa",
+        "emailLabel": "Email",
+        "emailPlaceholder": "nombre@escuela.com",
+        "passwordLabel": "Contraseña",
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "loginButton": "Entrar",
+        "orContinueWith": "O CONTINÚA CON",
+        "noAccount": "¿No tienes una cuenta?",
+        "register": "Regístrate"
     }
 }
