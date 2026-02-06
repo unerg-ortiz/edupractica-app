@@ -4,16 +4,32 @@
         "title": "Edupractica App"
     },
     "Categories": {
-        "title": "Gestionar Categorías",
-        "add": "Agregar Categoría",
-        "search": "Buscar categorías...",
-        "noCategories": "No se encontraron categorías.",
+        "panelTitle": "PANEL DE CONTROL",
+        "title": "Categorías",
+        "searchPlaceholder": "Buscar categoría...",
         "filters": {
-            "all": "Todos",
-            "active": "Activo",
-            "hidden": "Oculto",
-            "archived": "Archivado"
+            "all": "Todo",
+            "date": "Fecha",
+            "topics": "Temas",
+            "status": "Estado"
         },
+        "duplicates": {
+            "title": "Posibles duplicados",
+            "count": "{count} coincidencias encontradas",
+            "merge": "COMBINAR"
+        },
+        "allCategories": {
+            "title": "Todas las categorías",
+            "total": "Total: {count}"
+        },
+        "status": {
+            "updatedToday": "Actualizado hoy",
+            "noChanges": "Sin cambios",
+            "pendingReview": "Revisión pendiente",
+            "active": "Activo"
+        },
+        "add": "Agregar Categoría",
+        "noCategories": "No se encontraron categorías.",
         "form": {
             "newTitle": "Nueva Categoría",
             "editTitle": "Editar Categoría",
@@ -30,10 +46,6 @@
             "cancel": "Cancelar",
             "save": "Guardar",
             "available": "Este nombre está disponible y es único."
-        },
-        "item": {
-            "edit": "Editar",
-            "delete": "Eliminar"
         }
     },
     "Admin": {
