@@ -46,6 +46,17 @@
             "cancel": "Cancelar",
             "save": "Guardar",
             "available": "Este nombre está disponible y es único."
+        },
+        "detail": {
+            "title": "Detalle de Categoría",
+            "searchPlaceholder": "Buscar tema por nombre...",
+            "associatedTopics": "Temas Asociados",
+            "viewAll": "Ver todos",
+            "backToList": "Volver al listado",
+            "metrics": {
+                "totalTopics": "Temas Totales",
+                "students": "Estudiantes"
+            }
         }
     },
     "Admin": {
