@@ -111,5 +111,51 @@
             "confirmButton": "Confirmar Eliminación",
             "cancelButton": "Cancelar y volver"
         }
+    },
+    "Users": {
+        "title": "Gestión de Usuarios",
+        "searchPlaceholder": "Buscar por nombre o correo...",
+        "block": "Bloquear",
+        "unblock": "Desbloquear",
+        "active": "Activo",
+        "blocked": "Bloqueado"
+    },
+    "BlockModal": {
+        "title": "Confirmar Bloqueo Permanente",
+        "description": "Esta acción restringirá el acceso de forma definitiva. Por favor, especifique el motivo.",
+        "reasonLabel": "MOTIVO DEL BLOQUEO",
+        "reasons": {
+            "spam": "Spam o Publicidad",
+            "inappropriate": "Comportamiento inadecuado",
+            "fraud": "Fraude o actividad sospechosa"
+        },
+        "confirmation": "Confirmo que deseo aplicar una acción permanente sobre este usuario. Esta acción no se puede deshacer.",
+        "confirmButton": "Confirmar Bloqueo",
+        "cancelButton": "Cancelar"
+    },
+    "ContentTransfer": {
+        "initiate": {
+            "title": "Transferir Contenido",
+            "step1Label": "PASO 1 DE 2",
+            "step1Title": "Selecciona el Contenido",
+            "step1Description": "Elige los materiales y evaluaciones que deseas transferir",
+            "step2Label": "PASO 2 DE 2",
+            "step2Title": "Selecciona el Destinatario",
+            "step2Description": "Busca al profesor que recibirá el contenido",
+            "step2Preview": "En el siguiente paso, podrás buscar y seleccionar al destinatario",
+            "archives": "archivos",
+            "evaluationsLabel": "EVALUACIONES",
+            "searchPlaceholder": "Buscar por nombre o email...",
+            "selectButton": "SELECCIONAR",
+            "saveDraft": "Guardar Borrador",
+            "nextStep": "Siguiente"
+        }
+    },
+    "BlockedAccess": {
+        "title": "Cuenta Bloqueada",
+        "description": "Tu acceso ha sido restringido permanentemente por uso indebido.",
+        "reasonLabel": "MOTIVO",
+        "contactSupport": "Contactar Soporte",
+        "logout": "Cerrar Sesión"
     }
 }
