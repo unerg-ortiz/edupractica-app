@@ -21,6 +21,8 @@ import {
 import clsx from 'clsx';
 import { CategoryForm } from '@/components/admin/categories/CategoryForm';
 import { Category } from '@/types/schema';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // Mock Data Types
 type CategoryStatus = 'updatedToday' | 'noChanges' | 'pendingReview' | 'active';
@@ -43,6 +45,7 @@ interface DuplicateMatch {
 
 export default function AdminCategoriesPage() {
     const t = useTranslations('Categories');
+    const params = useParams();
 
     const [isDuplicatesOpen, setIsDuplicatesOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -100,19 +103,6 @@ export default function AdminCategoriesPage() {
 
     const handleAddClick = () => {
         setEditingCategory(undefined);
-        setIsFormOpen(true);
-    };
-
-    const handleEditClick = (cat: CategoryItem) => {
-        // Convert CategoryItem to Category for editing
-        const categoryData: Category = {
-            id: cat.id,
-            name: cat.name,
-            description: cat.description || '',
-            icon: 'BookOpen', // Default, you can map icons properly
-            isActive: true
-        };
-        setEditingCategory(categoryData);
         setIsFormOpen(true);
     };
 
@@ -225,9 +215,9 @@ export default function AdminCategoriesPage() {
 
                 <div className="space-y-4">
                     {categories.map((cat) => (
-                        <div
+                        <Link
                             key={cat.id}
-                            onClick={() => handleEditClick(cat)}
+                            href={`/${params.lang}/admin/categories/${cat.id}`}
                             className="group flex items-center gap-4 bg-[#111625] hover:bg-[#161c2e] p-4 rounded-3xl border border-white/5 transition-all cursor-pointer active:scale-[0.98]"
                         >
                             {/* Icon Box */}
@@ -259,7 +249,7 @@ export default function AdminCategoriesPage() {
                             </div>
 
                             <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-white transition-colors" />
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

@@ -46,9 +46,7 @@
             "previewName": "Nombre de la Categoría",
             "previewDescription": "La descripción de la categoría aparecerá aquí...",
             "cancel": "Cancelar",
-            "save": "Guardar Cambios",
             "saveNew": "Crear Categoría",
-            "available": "✓ Este nombre está disponible y es único",
             "duplicate": "⚠ Ya existe una categoría con este nombre",
             "checking": "Verificando disponibilidad...",
             "confirmSave": "¿Guardar cambios?",
@@ -56,7 +54,20 @@
             "confirmButton": "Sí, guardar",
             "cancelButton": "No, cancelar",
             "savedSuccess": "✓ Categoría guardada exitosamente",
-            "updatedSuccess": "✓ Categoría actualizada exitosamente"
+            "updatedSuccess": "✓ Categoría actualizada exitosamente",
+            "save": "Guardar",
+            "available": "Este nombre está disponible y es único."
+        },
+        "detail": {
+            "title": "Detalle de Categoría",
+            "searchPlaceholder": "Buscar tema por nombre...",
+            "associatedTopics": "Temas Asociados",
+            "viewAll": "Ver todos",
+            "backToList": "Volver al listado",
+            "metrics": {
+                "totalTopics": "Temas Totales",
+                "students": "Estudiantes"
+            }
         }
     },
     "Admin": {
