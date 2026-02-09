@@ -188,5 +188,24 @@
         "reasonLabel": "MOTIVO",
         "contactSupport": "Contactar Soporte",
         "logout": "Cerrar Sesión"
+    },
+    "MediaUpload": {
+        "header": "Carga Multimedia",
+        "title": "Subir Archivos",
+        "subtitle": "Gestiona el material de tus clases",
+        "dragDrop": "Arrastra y suelta tus archivos aquí",
+        "orBrowse": "O presiona el botón para navegar",
+        "selectFile": "Seleccionar Archivo",
+        "supportedFormats": "Formatos soportados:",
+        "sizeLimit": "Límite de tamaño: 100MB por archivo",
+        "remove": "Eliminar",
+        "preview": "Vista Previa",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "types": {
+            "video": "VIDEO",
+            "audio": "AUDIO",
+            "image": "IMAGEN"
+        }
     }
 }
