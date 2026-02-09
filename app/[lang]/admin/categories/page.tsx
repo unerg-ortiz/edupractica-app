@@ -19,19 +19,22 @@ import {
     ChevronUp
 } from 'lucide-react';
 import clsx from 'clsx';
+import { CategoryForm } from '@/components/admin/categories/CategoryForm';
+import { Category } from '@/types/schema';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 // Mock Data Types
 type CategoryStatus = 'updatedToday' | 'noChanges' | 'pendingReview' | 'active';
 
-interface Category {
+interface CategoryItem {
     id: string;
     name: string;
     topics: number;
     status: CategoryStatus;
     icon: React.ElementType;
     color: string;
+    description?: string;
 }
 
 interface DuplicateMatch {
@@ -42,11 +45,12 @@ interface DuplicateMatch {
 
 export default function AdminCategoriesPage() {
     const t = useTranslations('Categories');
-    const tNav = useTranslations('Admin.nav'); // Assuming this exists from previous steps, otherwise I'll fallback
     const params = useParams();
 
     const [isDuplicatesOpen, setIsDuplicatesOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
 
     // Mock Data mimicking the image
     const duplicates: DuplicateMatch[] = [
@@ -54,14 +58,15 @@ export default function AdminCategoriesPage() {
         { id: '2', name1: 'Física I', name2: 'Fisica 1' }
     ];
 
-    const categories: Category[] = [
+    const categories: CategoryItem[] = [
         {
             id: '1',
             name: 'Matemáticas Avanzadas',
             topics: 24,
             status: 'updatedToday',
             icon: Calculator,
-            color: 'bg-blue-600'
+            color: 'bg-blue-600',
+            description: 'Álgebra, cálculo y geometría avanzada'
         },
         {
             id: '2',
@@ -69,7 +74,8 @@ export default function AdminCategoriesPage() {
             topics: 12,
             status: 'noChanges',
             icon: ScrollText,
-            color: 'bg-amber-600'
+            color: 'bg-amber-600',
+            description: 'Historia mundial desde la antigüedad'
         },
         {
             id: '3',
@@ -77,7 +83,8 @@ export default function AdminCategoriesPage() {
             topics: 8,
             status: 'pendingReview',
             icon: FlaskConical,
-            color: 'bg-emerald-600'
+            color: 'bg-emerald-600',
+            description: 'Mecánica cuántica y física moderna'
         },
         {
             id: '4',
@@ -85,12 +92,23 @@ export default function AdminCategoriesPage() {
             topics: 15,
             status: 'active',
             icon: Globe,
-            color: 'bg-indigo-600'
+            color: 'bg-indigo-600',
+            description: 'Literatura clásica y contemporánea'
         }
     ];
 
     const getStatusText = (status: CategoryStatus) => {
         return t(`status.${status}`);
+    };
+
+    const handleAddClick = () => {
+        setEditingCategory(undefined);
+        setIsFormOpen(true);
+    };
+
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingCategory(undefined);
     };
 
     return (
@@ -109,7 +127,10 @@ export default function AdminCategoriesPage() {
                             {t('title')}
                         </h1>
                     </div>
-                    <button className="bg-blue-600 hover:bg-blue-500 p-3 rounded-full shadow-lg shadow-blue-600/30 transition-all active:scale-95">
+                    <button
+                        onClick={handleAddClick}
+                        className="bg-blue-600 hover:bg-blue-500 p-3 rounded-full shadow-lg shadow-blue-600/30 transition-all active:scale-95"
+                    >
                         <Plus className="w-6 h-6 text-white" />
                     </button>
                 </header>
@@ -254,6 +275,15 @@ export default function AdminCategoriesPage() {
                     </div>
                 </div>
             </nav>
+
+            {/* Modal Overlay for Form */}
+            {isFormOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
+                        <CategoryForm initialData={editingCategory} onClose={handleFormClose} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
