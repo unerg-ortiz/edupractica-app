@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Search, Check, ArrowRight, Save } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { ArrowLeft, Search, Check, ArrowRight } from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
 import clsx from 'clsx';
 
 interface Material {
@@ -24,6 +24,7 @@ interface Recipient {
 export default function InitiateContentTransferPage() {
     const t = useTranslations('ContentTransfer');
     const router = useRouter();
+    const params = useParams();
 
     const [currentStep, setCurrentStep] = useState<1 | 2>(1);
     const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -99,11 +100,11 @@ export default function InitiateContentTransferPage() {
             // Handle send request logic
             console.log('Sending request to:', selectedRecipient);
             console.log('Materials:', selectedMaterials);
-            router.push('/es/professor/content-transfer/success');
+            router.push(`/${params.lang}/professor/content-transfer/success`);
         }
     };
 
-    const renderMaterialCard = (material: Material, category: string) => {
+    const renderMaterialCard = (material: Material) => {
         const isSelected = selectedMaterials.includes(material.id);
 
         return (
@@ -198,7 +199,7 @@ export default function InitiateContentTransferPage() {
                                 {materials[0].category}
                             </h3>
                             <div className="space-y-3">
-                                {materials.map(material => renderMaterialCard(material, 'DEPTO. DE MATEMÁTICAS'))}
+                                {materials.map(material => renderMaterialCard(material))}
                             </div>
                         </div>
 
@@ -208,7 +209,7 @@ export default function InitiateContentTransferPage() {
                                 {t('initiate.evaluationsLabel')}
                             </h3>
                             <div className="space-y-3">
-                                {evaluations.map(material => renderMaterialCard(material, 'EVALUACIONES'))}
+                                {evaluations.map(material => renderMaterialCard(material))}
                             </div>
                         </div>
 
