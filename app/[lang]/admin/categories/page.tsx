@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // Mock Data Types
 type CategoryStatus = 'updatedToday' | 'noChanges' | 'pendingReview' | 'active';
@@ -42,6 +43,7 @@ interface DuplicateMatch {
 export default function AdminCategoriesPage() {
     const t = useTranslations('Categories');
     const tNav = useTranslations('Admin.nav'); // Assuming this exists from previous steps, otherwise I'll fallback
+    const params = useParams();
 
     const [isDuplicatesOpen, setIsDuplicatesOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -192,8 +194,9 @@ export default function AdminCategoriesPage() {
 
                 <div className="space-y-4">
                     {categories.map((cat) => (
-                        <div
+                        <Link
                             key={cat.id}
+                            href={`/${params.lang}/admin/categories/${cat.id}`}
                             className="group flex items-center gap-4 bg-[#111625] hover:bg-[#161c2e] p-4 rounded-3xl border border-white/5 transition-all cursor-pointer active:scale-[0.98]"
                         >
                             {/* Icon Box */}
@@ -225,7 +228,7 @@ export default function AdminCategoriesPage() {
                             </div>
 
                             <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-white transition-colors" />
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>
