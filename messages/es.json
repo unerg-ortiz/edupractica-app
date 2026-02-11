@@ -90,6 +90,23 @@
         "noAccount": "¿No tienes una cuenta?",
         "register": "Regístrate"
     },
+    "Register": {
+        "header": "REGISTRO",
+        "title": "Crear Cuenta",
+        "subtitle": "Elige tu rol para comenzar en la plataforma",
+        "emailLabel": "Correo electrónico",
+        "emailPlaceholder": "nombre@ejemplo.com",
+        "passwordLabel": "Contraseña",
+        "roles": {
+            "student": "Estudiante",
+            "professor": "Profesor",
+            "admin": "Admin"
+        },
+        "submitButton": "Crear Cuenta {role}",
+        "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+        "loginLink": "Inicia sesión",
+        "back": "Regresar"
+    },
     "Profile": {
         "title": "Privacidad y Seguridad",
         "configuration": "CONFIGURACIÓN DE CUENTA",
