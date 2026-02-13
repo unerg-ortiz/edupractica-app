@@ -7,20 +7,15 @@ import {
     TrendingUp,
     FileText,
     Table,
-    Clock,
-    AlertCircle,
     LayoutGrid,
     Users,
     BookOpen,
-    Settings,
-    ArrowUpRight
+    Settings
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
 export default function AnalyticsPage() {
-    const params = useParams();
-    const lang = params.lang as string;
+    // const params = useParams(); // Removed unused variable
 
     return (
         <div className="min-h-screen bg-[#050511] text-white font-sans pb-20">
