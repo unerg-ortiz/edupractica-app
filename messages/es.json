@@ -188,5 +188,22 @@
         "reasonLabel": "MOTIVO",
         "contactSupport": "Contactar Soporte",
         "logout": "Cerrar Sesión"
+    },
+    "MatchingEditor": {
+        "title": "Editor de Emparejamiento",
+        "subtitle": "Desafío: Vocabulario Básico",
+        "library": "Librería",
+        "configuration": "Configuración",
+        "searchPlaceholder": "Buscar en biblioteca...",
+        "term": "TÉRMINO",
+        "definition": "DEFINICIÓN",
+        "dragHere": "Arrastra aquí",
+        "dropToJoin": "Soltar para unir",
+        "newPair": "Nuevo Par de Elementos",
+        "linkCreated": "VÍNCULO CREADO",
+        "preview": "Previsualizar",
+        "saveChallenge": "Guardar Desafío",
+        "text": "Texto",
+        "image": "Imagen"
     }
 }
