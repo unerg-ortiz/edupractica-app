@@ -188,5 +188,27 @@
         "reasonLabel": "MOTIVO",
         "contactSupport": "Contactar Soporte",
         "logout": "Cerrar Sesión"
+    },
+    "ContentReview": {
+        "title": "Revisión de Contenido",
+        "subtitle": "V2 DETALLADA",
+        "dashboardTitle": "Revisiones Pendientes",
+        "dashboardSubtitle": "Supervisa y aprueba el nuevo contenido educativo.",
+        "panelTitle": "Panel de Administrador",
+        "updatedAt": "Actualizado: {date}",
+        "topicDescription": "Descripción del Tema",
+        "learningStages": "Etapas de Aprendizaje",
+        "pending": "PENDIENTE",
+        "viewDetail": "Ver Detalles",
+        "adminNotes": {
+            "title": "NOTAS DEL ADMINISTRADOR",
+            "placeholder": "Escribe tus observaciones detalladas para el profesor aquí...",
+            "footer": "Estas notas serán visibles para el profesor si el contenido es rechazado."
+        },
+        "buttons": {
+            "reject": "Rechazar",
+            "approve": "Aprobar Contenido"
+        },
+        "materials": "{count} Materiales"
     }
 }

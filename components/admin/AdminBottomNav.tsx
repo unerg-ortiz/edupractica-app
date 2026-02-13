@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { LayoutGrid, Shapes, Users, Settings } from 'lucide-react';
+import { LayoutGrid, Shapes, Users, Settings, CheckCircle2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export const AdminBottomNav = () => {
@@ -11,6 +11,7 @@ export const AdminBottomNav = () => {
     const navItems = [
         { name: t('dashboard'), icon: LayoutGrid, href: '/admin/dashboard' },
         { name: t('categories'), icon: Shapes, href: '/admin/categories' },
+        { name: 'Revisión', icon: CheckCircle2, href: '/admin/content-review' },
         { name: t('users'), icon: Users, href: '/admin/users' },
         { name: t('settings'), icon: Settings, href: '/admin/settings' },
     ];
