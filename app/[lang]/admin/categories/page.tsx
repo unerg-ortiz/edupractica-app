@@ -289,7 +289,7 @@ export default function AdminCategoriesPage() {
             {/* Modal Overlay for Form */}
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-2xl animate-in zoom-in-95 duration-200">
+                    <div className="w-full max-w-2xl md:max-w-6xl animate-in zoom-in-95 duration-200 h-full md:h-auto flex flex-col justify-center">
                         <CategoryForm initialData={editingCategory} onClose={handleFormClose} />
                     </div>
                 </div>
