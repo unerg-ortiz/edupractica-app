@@ -353,7 +353,6 @@ export default function AdminCategoriesPage({ params }: { params: Promise<{ lang
     );
 }
 
-
 // Fixed NavItem Component
 interface NavItemProps {
     href: string;

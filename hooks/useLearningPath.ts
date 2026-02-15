@@ -17,7 +17,7 @@ export const useLearningPath = () => {
     // ViewModel Logic
     // In a real app, this would fetch data from a service
 
-    const [stages, setStages] = useState<Stage[]>([
+    const [stages] = useState<Stage[]>([
         {
             id: 1,
             title: "Introducción al Pensamiento Creativo",
