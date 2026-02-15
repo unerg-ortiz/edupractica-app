@@ -5,10 +5,7 @@ import {
     X,
     Lightbulb,
     Eye,
-    ChevronLeft,
-    MoreHorizontal,
-    Pencil,
-    Image as ImageIcon
+    Pencil
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -99,7 +96,7 @@ export default function ChallengeEditorPage() {
                             </div>
                             <div>
                                 <h2 className="text-xl font-bold text-white">Pistas y Retroalimentación</h2>
-                                <p className="text-gray-400 text-sm">Mensajes personalizados para "Manzana"</p>
+                                <p className="text-gray-400 text-sm">Mensajes personalizados para &quot;Manzana&quot;</p>
                             </div>
                         </div>
 

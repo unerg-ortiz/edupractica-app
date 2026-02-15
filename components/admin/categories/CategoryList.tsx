@@ -12,7 +12,7 @@ interface CategoryListProps {
 
 export const CategoryList: React.FC<CategoryListProps> = ({ onAddCategory, onEditCategory }) => {
     const t = useTranslations('Categories');
-    const { categories, searchQuery, filter, setSearchQuery, setFilter, deleteCategory, getFilteredCategories } = useCategoryStore();
+    const { searchQuery, filter, setSearchQuery, setFilter, deleteCategory, getFilteredCategories } = useCategoryStore();
 
     const filteredCategories = getFilteredCategories();
 
