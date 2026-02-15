@@ -112,6 +112,55 @@
             "cancelButton": "Cancelar y volver"
         }
     },
+    "ContentTransfer": {
+        "requestDetails": {
+            "title": "Detalles de la Solicitud",
+            "sentBadge": "TE HA ENVIADO UNA SOLICITUD",
+            "packageTitle": "Transferencia de Contenido",
+            "fileCount": "{count} archivos",
+            "topicsIncluded": "Temas incluidos",
+            "acceptButton": "Aceptar Transferencia",
+            "rejectButton": "Rechazar"
+        },
+        "initiate": {
+            "title": "Transferencia de Contenido",
+            "step1Label": "PASO 1 DE 2",
+            "step1Title": "Seleccionar Materiales",
+            "step1Description": "Antes de que tu cuenta sea desactivada, elige los elementos que quieres transferir a un colega.",
+            "step2Label": "PASO 2 DE 2",
+            "step2Title": "Buscar Destinatario",
+            "step2Description": "¿Quién debería recibir estos materiales?",
+            "step2Preview": "¿Quién debería recibir estos materiales?",
+            "evaluationsLabel": "EVALUACIONES",
+            "archives": "Archivos",
+            "searchPlaceholder": "Buscar por nombre o correo",
+            "selectButton": "SELECCIONAR",
+            "saveDraft": "Guardar Borrador",
+            "nextStep": "Siguiente Paso"
+        },
+        "success": {
+            "title": "¡Solicitud Enviada!",
+            "description": "Tu solicitud de transferencia ha sido enviada exitosamente. El destinatario recibirá una notificación y podrá aceptar o rechazar la transferencia.",
+            "nextSteps": {
+                "title": "¿Qué sigue?",
+                "description": "El receptor recibirá una notificación y tendrá la opción de aceptar o rechazar la transferencia. Te notificaremos cuando tome una decisión."
+            },
+            "goToDashboard": "Ir al Panel de Control",
+            "viewHistory": "Ver Historial de Transferencias"
+        },
+        "archive": {
+            "title": "Materiales sin Transferir",
+            "subtitle": "{count} materiales serán archivados",
+            "description": "Estás a punto de darte de baja sin transferir tus materiales educativos. Estos contenidos serán archivados temporalmente y solo estarán disponibles para administradores.",
+            "archiveInfo": {
+                "title": "¿Qué significa archivar?",
+                "description": "Tus materiales se guardarán de forma segura durante 90 días. Los administradores podrán acceder a ellos y reasignarlos si es necesario."
+            },
+            "transferButton": "Transferir Materiales Ahora",
+            "archiveButton": "Continuar con Archivo",
+            "warning": "Recomendamos transferir tus materiales a un colega para asegurar la continuidad educativa."
+        }
+    },
     "Users": {
         "title": "Gestión de Usuarios",
         "subtitle": "Administra los accesos y estados de los usuarios de la plataforma",
@@ -147,24 +196,6 @@
         "confirmation": "Confirmo que deseo aplicar una acción permanente sobre este usuario. Esta acción no se puede deshacer.",
         "confirmButton": "Confirmar Bloqueo",
         "cancelButton": "Cancelar"
-    },
-    "ContentTransfer": {
-        "initiate": {
-            "title": "Transferir Contenido",
-            "step1Label": "PASO 1 DE 2",
-            "step1Title": "Selecciona el Contenido",
-            "step1Description": "Elige los materiales y evaluaciones que deseas transferir",
-            "step2Label": "PASO 2 DE 2",
-            "step2Title": "Selecciona el Destinatario",
-            "step2Description": "Busca al profesor que recibirá el contenido",
-            "step2Preview": "En el siguiente paso, podrás buscar y seleccionar al destinatario",
-            "archives": "archivos",
-            "evaluationsLabel": "EVALUACIONES",
-            "searchPlaceholder": "Buscar por nombre o email...",
-            "selectButton": "SELECCIONAR",
-            "saveDraft": "Guardar Borrador",
-            "nextStep": "Siguiente"
-        }
     },
     "BlockedAccess": {
         "platformName": "PLATAFORMA",
