@@ -2,12 +2,67 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { auth } from "@/lib/api";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 
 export default function LoginPage() {
     const t = useTranslations("Auth");
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const params = useParams();
+    const lang = params.lang as string;
+
+    const registered = searchParams.get('registered');
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm({
+        defaultValues: {
+            email: '',
+            password: ''
+        }
+    });
+
+    const onSubmit = async (data: any) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const formData = new FormData();
+            formData.append('username', data.email);
+            formData.append('password', data.password);
+
+            const result = await auth.login(formData);
+
+            // Save to localStorage
+            localStorage.setItem('token', result.access_token);
+            localStorage.setItem('user', JSON.stringify({
+                email: result.user_email,
+                role: result.user_role,
+                name: result.user_name
+            }));
+
+            // Redirect based on role
+            if (result.user_role === 'admin') {
+                router.push(`/${lang}/admin`);
+            } else if (result.user_role === 'professor') {
+                router.push(`/${lang}/professor`);
+            } else {
+                router.push(`/${lang}/learning-path`);
+            }
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen w-full bg-[#0B1120] text-slate-200 flex flex-col relative px-6 py-8">
@@ -25,8 +80,20 @@ export default function LoginPage() {
                     <p className="text-slate-400 text-lg">{t("subText")}</p>
                 </div>
 
+                {registered && (
+                    <div className="mb-6 bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-2xl text-sm text-center">
+                        ¡Registro exitoso! Por favor, inicia sesión.
+                    </div>
+                )}
+
+                {error && (
+                    <div className="mb-6 bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-2xl text-sm text-center">
+                        {error}
+                    </div>
+                )}
+
                 {/* Form */}
-                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-slate-300 ml-1">
                             {t("emailLabel")}
@@ -34,10 +101,12 @@ export default function LoginPage() {
                         <div className="relative">
                             <input
                                 type="email"
+                                {...register('email', { required: true })}
                                 placeholder={t("emailPlaceholder")}
                                 className="w-full bg-[#131B2E] border border-slate-700/50 rounded-2xl px-5 py-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
                             />
                         </div>
+                        {errors.email && <span className="text-red-500 text-xs ml-1">El correo es requerido</span>}
                     </div>
 
                     <div className="space-y-2">
@@ -47,6 +116,7 @@ export default function LoginPage() {
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
+                                {...register('password', { required: true })}
                                 placeholder="••••••••"
                                 className="w-full bg-[#131B2E] border border-slate-700/50 rounded-2xl px-5 py-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
                             />
@@ -62,6 +132,7 @@ export default function LoginPage() {
                                 )}
                             </button>
                         </div>
+                        {errors.password && <span className="text-red-500 text-xs ml-1">La contraseña es requerida</span>}
                     </div>
 
                     <div className="flex justify-end">
@@ -75,9 +146,10 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-2xl py-4 transition-all duration-200 shadow-lg shadow-blue-900/20 active:scale-[0.98]"
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-2xl py-4 transition-all duration-200 shadow-lg shadow-blue-900/20 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {t("loginButton")}
+                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("loginButton")}
                     </button>
                 </form>
 
@@ -142,7 +214,7 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* Contrast Toggle Mockup - Circle button at bottom right */}
+                {/* Contrast Toggle Mockup */}
                 <div className="fixed bottom-6 right-6">
                     <button className="w-12 h-12 rounded-full bg-[#1e293b] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
                         <div className="w-6 h-6 rounded-full border-2 border-current flex overflow-hidden">

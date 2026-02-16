@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { auth } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 // Simple types since we might not have a shared lib yet
 type Role = 'student' | 'professor' | 'admin';
@@ -13,6 +15,8 @@ export default function RegisterForm({ locale }: { locale: string }) {
     const t = useTranslations('Register');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
     const {
         register,
@@ -23,6 +27,7 @@ export default function RegisterForm({ locale }: { locale: string }) {
     } = useForm({
         defaultValues: {
             role: 'student' as Role,
+            full_name: '',
             email: '',
             password: ''
         }
@@ -32,11 +37,16 @@ export default function RegisterForm({ locale }: { locale: string }) {
 
     const onSubmit = async (data: any) => {
         setIsLoading(true);
-        console.log('Form data:', data);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsLoading(false);
-        // Check functionality only, actual API implementation is out of scope as per instructions
+        setError(null);
+        try {
+            await auth.signup(data);
+            // On success, redirect to login
+            router.push(`/${locale}/login?registered=true`);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const roles: Role[] = ['student', 'professor', 'admin'];
@@ -64,7 +74,30 @@ export default function RegisterForm({ locale }: { locale: string }) {
                     ))}
                 </div>
 
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm text-center">
+                        {error}
+                    </div>
+                )}
+
                 <div className="space-y-4">
+                    {/* Full Name Field */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300">
+                            Nombre Completo
+                        </label>
+                        <input
+                            {...register('full_name', { required: true })}
+                            className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder="Ej. Juan Pérez"
+                        />
+                        {errors.full_name && (
+                            <span className="text-red-500 text-xs mt-1">
+                                El nombre completo es requerido
+                            </span>
+                        )}
+                    </div>
+
                     {/* Email Field */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-300">
