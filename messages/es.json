@@ -15,7 +15,7 @@
         },
         "duplicates": {
             "title": "Posibles duplicados",
-            "count": "{count} coincidencias encontradas",
+            "count": "{count} coincidencias encontradas que podrían fusionarse",
             "merge": "COMBINAR"
         },
         "allCategories": {
@@ -24,7 +24,7 @@
         },
         "status": {
             "updatedToday": "Actualizado hoy",
-            "noChanges": "Sin cambios",
+            "noChanges": "Sin cambios recientes",
             "pendingReview": "Revisión pendiente",
             "active": "Activo"
         },
@@ -163,11 +163,26 @@
     },
     "Users": {
         "title": "Gestión de Usuarios",
+        "subtitle": "Administra los accesos y estados de los usuarios de la plataforma",
         "searchPlaceholder": "Buscar por nombre o correo...",
+        "columns": {
+            "user": "USUARIO",
+            "id": "ID DE USUARIO",
+            "email": "CORREO ELECTRÓNICO",
+            "status": "ESTADO",
+            "actions": "ACCIONES"
+        },
+        "stats": {
+            "total": "Total Usuarios",
+            "active": "Usuarios Activos",
+            "blocked": "Usuarios Bloqueados",
+            "new": "Nuevos (Hoy)"
+        },
         "block": "Bloquear",
         "unblock": "Desbloquear",
         "active": "Activo",
-        "blocked": "Bloqueado"
+        "blocked": "Bloqueado",
+        "pagination": "Mostrando {start} a {end} de {total} usuarios"
     },
     "BlockModal": {
         "title": "Confirmar Bloqueo Permanente",
@@ -183,9 +198,11 @@
         "cancelButton": "Cancelar"
     },
     "BlockedAccess": {
+        "platformName": "PLATAFORMA",
         "title": "Cuenta Bloqueada",
-        "description": "Tu acceso ha sido restringido permanentemente por uso indebido.",
-        "reasonLabel": "MOTIVO",
+        "description": "Tu acceso ha sido restringido permanentemente por uso indebido de las políticas de la comunidad.",
+        "reasonLabel": "MOTIVO DEL BLOQUEO",
+        "reasonSpam": "Spam masivo o Publicidad",
         "contactSupport": "Contactar Soporte",
         "logout": "Cerrar Sesión"
     },
@@ -209,6 +226,8 @@
             "reject": "Rechazar",
             "approve": "Aprobar Contenido"
         },
-        "materials": "{count} Materiales"
+        "materials": "{count} Materiales",
+        "logout": "Cerrar Sesión",
+        "footer": "Versión 3.0.0 (Estudiante) © 2024 Gestión de Usuarios"
     }
 }
