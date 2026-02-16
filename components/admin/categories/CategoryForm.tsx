@@ -125,146 +125,192 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData, onClose
 
     return (
         <>
-            <div className="bg-[#0f1629] text-white rounded-3xl w-full max-w-3xl mx-auto shadow-2xl border border-white/10 overflow-hidden">
+            <div className="bg-[#0b1120] text-white rounded-3xl w-full h-full md:h-auto md:max-h-[90vh] shadow-2xl border border-white/5 overflow-y-auto scrollbar-hide flex flex-col">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-white/10 bg-gradient-to-b from-[#151b2d] to-[#0f1629]">
-                    <h2 className="text-2xl font-bold tracking-tight">
-                        {initialData ? t('editTitle') : t('newTitle')}
-                    </h2>
+                <div className="flex justify-between items-center px-6 py-5 border-b border-white/5 bg-[#0b1120] sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <button onClick={onClose} className="md:hidden">
+                            <span className="text-xl">‹</span>
+                        </button>
+                        <h2 className="text-lg font-bold tracking-wide">
+                            {initialData ? t('editTitle') : 'Editor de Categoría'}
+                        </h2>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                        className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
                     >
-                        <X className="w-6 h-6 text-gray-400" />
+                        {t('close')}
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmitForm)} className="p-6 space-y-6">
-                    {/* Name Field */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                {t('nameLabel')}
-                            </label>
-                            <span className={clsx(
-                                "text-xs font-medium",
-                                (nameValue?.length || 0) > 45 ? "text-amber-400" : "text-gray-500"
-                            )}>
-                                {nameValue?.length || 0} / 50
-                            </span>
-                        </div>
-                        <input
-                            {...register('name')}
-                            maxLength={50}
-                            className="w-full bg-[#0a0e1a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                            placeholder={t('namePlaceholder')}
-                        />
-                        {errors.name && (
-                            <p className="text-red-400 text-sm mt-2 flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4" />
-                                {errors.name.message}
-                            </p>
-                        )}
-                        {getValidationMessage()}
-                    </div>
+                <form onSubmit={handleSubmit(onSubmitForm)} className="flex-1 p-6 md:p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
 
-                    {/* Description Field */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            {t('descriptionLabel')}
-                        </label>
-                        <textarea
-                            {...register('description')}
-                            rows={4}
-                            maxLength={200}
-                            className="w-full bg-[#0a0e1a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
-                            placeholder={t('descriptionPlaceholder')}
-                        />
-                        <div className="flex justify-end">
-                            <span className="text-xs text-gray-500">
-                                {descriptionValue?.length || 0} / 200
-                            </span>
-                        </div>
-                    </div>
+                        {/* LEFT COLUMN - Editable Fields */}
+                        <div className="md:col-span-7 space-y-8">
+                            <div>
+                                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">
+                                    CAMPOS EDITABLES
+                                </h3>
 
-                    {/* Icon Picker */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            {t('iconLabel')}
-                        </label>
-                        <Controller
-                            control={control}
-                            name="icon"
-                            render={({ field }) => (
-                                <IconPicker
-                                    selectedIcon={field.value || 'BookOpen'}
-                                    onSelectIcon={field.onChange}
-                                />
-                            )}
-                        />
-                    </div>
+                                {/* Name Field */}
+                                <div className="space-y-3 mb-6">
+                                    <label className="text-sm font-medium text-gray-300">
+                                        {t('nameLabel')}
+                                    </label>
+                                    <div className="relative group">
+                                        <input
+                                            {...register('name')}
+                                            maxLength={50}
+                                            className="w-full bg-[#131b2e] border border-white/5 rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
+                                            placeholder={t('namePlaceholder')}
+                                        />
+                                        {!isDuplicate && !isCheckingDuplicate && nameValue && !errors.name && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                                                <Check className="w-3 h-3 text-[#0b1120] stroke-[3]" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {getValidationMessage()}
+                                    {errors.name && (
+                                        <p className="text-red-400 text-sm flex items-center gap-2">
+                                            <AlertCircle className="w-4 h-4" />
+                                            {errors.name.message}
+                                        </p>
+                                    )}
+                                </div>
 
-                    {/* Active Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-[#0a0e1a] rounded-xl border border-white/10">
-                        <div>
-                            <p className="font-medium text-white">{t('activeLabel')}</p>
-                            <p className="text-sm text-gray-500">{t('visibilityLabel')}</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                {...register('isActive')}
-                                className="sr-only peer"
-                            />
-                            <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
+                                {/* Description Field */}
+                                <div className="space-y-3 mb-6">
+                                    <label className="text-sm font-medium text-gray-300">
+                                        {t('descriptionLabel')}
+                                    </label>
+                                    <textarea
+                                        {...register('description')}
+                                        rows={5}
+                                        maxLength={200}
+                                        className="w-full bg-[#131b2e] border border-white/5 rounded-xl px-4 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none leading-relaxed"
+                                        placeholder={t('descriptionPlaceholder')}
+                                    />
+                                    <div className="flex justify-end">
+                                        <span className="text-xs text-gray-600">
+                                            {descriptionValue?.length || 0} / 200
+                                        </span>
+                                    </div>
+                                </div>
 
-                    {/* Preview Section */}
-                    <div className="pt-6 border-t border-white/10">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
-                            {t('preview')}
-                        </h3>
-                        <div className="bg-gradient-to-br from-[#0a0e1a] to-[#151b2d] p-6 rounded-2xl border border-white/10 flex items-center gap-5 shadow-xl">
-                            <div className={clsx(
-                                "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all",
-                                isActiveValue ? "bg-blue-600 shadow-blue-600/30" : "bg-gray-700 shadow-black/20"
-                            )}>
-                                {IconPreview && <IconPreview className="w-8 h-8 text-white" />}
+                                {/* Icon Picker (Kept for functionality, though not in screenshot) */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-medium text-gray-300">
+                                        Icono de la Categoría
+                                    </label>
+                                    <Controller
+                                        control={control}
+                                        name="icon"
+                                        render={({ field }) => (
+                                            <IconPicker
+                                                selectedIcon={field.value || 'BookOpen'}
+                                                onSelectIcon={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-xl text-white mb-1 truncate">
-                                    {nameValue || t('previewName')}
-                                </h4>
-                                <p className="text-gray-400 text-sm line-clamp-2">
-                                    {descriptionValue || t('previewDescription')}
-                                </p>
+
+                            {/* Desktop Save Button Position (Bottom of Left Column) */}
+                            <div className="hidden md:block pt-8">
+                                <button
+                                    type="submit"
+                                    disabled={isDuplicate || isCheckingDuplicate || !isDirty}
+                                    className={clsx(
+                                        "px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2",
+                                        isDuplicate || isCheckingDuplicate || !isDirty
+                                            ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+                                            : "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30 active:scale-[0.98]"
+                                    )}
+                                >
+                                    <span className="w-5 h-5 bg-white rounded flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 bg-blue-600 rounded-[1px]" />
+                                    </span>
+                                    {t('save')}
+                                </button>
                             </div>
                         </div>
+
+                        {/* RIGHT COLUMN - Stats & Preview */}
+                        <div className="md:col-span-5 space-y-8">
+
+                            {/* Auto-save Card */}
+                            <div className="bg-[#131b2e] rounded-2xl p-5 border border-white/5 flex items-center justify-between">
+                                <div>
+                                    <h4 className="font-bold text-white mb-1">Auto-guardado</h4>
+                                    <p className="text-xs text-gray-500">Último guardado: hace 2 min</p>
+                                </div>
+                                <div className="w-12 h-7 bg-blue-600 rounded-full relative cursor-pointer">
+                                    <div className="absolute top-1 right-1 w-5 h-5 bg-white rounded-full shadow-sm" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">
+                                    VISTA PREVIA ESTUDIANTE
+                                </h3>
+
+                                {/* 3D Preview Card */}
+                                <div className="bg-[#0f1523] rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+                                    {/* Card Image Area */}
+                                    <div className="h-44 bg-gradient-to-br from-blue-900/40 to-[#0f1523] relative flex items-center justify-center overflow-hidden">
+                                        {/* Abstract Blue Shapes (CSS Shapes) */}
+                                        <div className="absolute right-0 bottom-0 w-32 h-32 bg-blue-600/20 rounded-full blur-2xl" />
+                                        <div className="absolute left-10 top-10 w-20 h-20 bg-indigo-500/20 rounded-full blur-xl" />
+
+                                        {/* Mock 3D Elements */}
+                                        <div className="relative z-10 w-full h-full flex items-center justify-center opacity-80">
+                                            {IconPreview ? <IconPreview className="w-24 h-24 text-blue-500/50 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" /> : null}
+                                        </div>
+
+                                        <div className="absolute top-4 left-4 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg">
+                                            NUEVO
+                                        </div>
+                                    </div>
+
+                                    {/* Card Content */}
+                                    <div className="p-6">
+                                        <h4 className="text-lg font-bold text-white mb-2 truncate">
+                                            {nameValue || 'Matemáticas Avanzadas'}
+                                        </h4>
+                                        <p className="text-sm text-gray-400 leading-relaxed line-clamp-2 mb-6 h-10">
+                                            {descriptionValue || 'Explora conceptos complejos como cálculo multivariable, álgebra lineal profunda...'}
+                                        </p>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex -space-x-2">
+                                                <div className="w-8 h-8 rounded-full bg-slate-200 border-2 border-[#0f1523]" />
+                                                <div className="w-8 h-8 rounded-full bg-slate-400 border-2 border-[#0f1523]" />
+                                            </div>
+                                            <span className="text-blue-500 text-xs font-bold hover:text-blue-400 cursor-pointer transition-colors">
+                                                Ver detalles
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-6 py-3.5 rounded-xl text-gray-300 font-bold hover:bg-white/5 transition-all border border-white/10"
-                        >
-                            {t('cancel')}
-                        </button>
+                    {/* Mobile Only: Save Button (Sticky Bottom or just bottom) */}
+                    <div className="md:hidden pt-8">
                         <button
                             type="submit"
                             disabled={isDuplicate || isCheckingDuplicate || !isDirty}
-                            className={clsx(
-                                "flex-1 px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg",
-                                isDuplicate || isCheckingDuplicate || !isDirty
-                                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] active:scale-[0.98]"
-                            )}
+                            className="w-full py-4 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 transition-all"
                         >
-                            {initialData ? t('save') : t('saveNew')}
+                            {t('save')}
                         </button>
                     </div>
+
                 </form>
             </div>
 
