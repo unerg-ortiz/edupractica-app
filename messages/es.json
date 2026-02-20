@@ -268,5 +268,30 @@
         "materials": "{count} Materiales",
         "logout": "Cerrar Sesión",
         "footer": "Versión 3.0.0 (Estudiante) © 2024 Gestión de Usuarios"
+    },
+    "Landing": {
+        "title": "Transforma tu",
+        "titleAccent": "Aprendizaje",
+        "description": "La plataforma integral para gestionar clases, analizar progreso y conectar a toda la comunidad educativa en un solo lugar.",
+        "ctaPanel": "Ir a mi Panel",
+        "login": "Iniciar sesión",
+        "students": {
+            "title": "Para Estudiantes",
+            "subtitle": "38 cursos activos",
+            "description": "Accede a materiales, sigue tu progreso y mejora tus notas con herramientas personalizadas.",
+            "link": "Entrar al portal"
+        },
+        "professors": {
+            "title": "Para Profesores",
+            "subtitle": "Herramientas de gestión",
+            "description": "Gestiona clases, sube tareas y evalúa con facilidad a través de nuestro sistema intuitivo.",
+            "link": "Gestionar clases"
+        },
+        "footer": {
+            "copyright": "© 2024 EduPráctica. Todos los derechos reservados.",
+            "privacy": "Privacidad",
+            "terms": "Términos",
+            "support": "Soporte"
+        }
     }
 }
