@@ -66,6 +66,13 @@ export const contentReview = {
         }),
 };
 
+// ── Analytics ────────────────────────────
+
+export const analytics = {
+    getDashboard: () => apiFetch('/api/analytics/dashboard'),
+    getProfessorSummary: () => apiFetch('/api/analytics/professor/summary'),
+};
+
 // ── Stages ───────────────────────────────
 
 export const stages = {
@@ -76,6 +83,10 @@ export const stages = {
     /** Get stages with user progress */
     getWithProgress: (categoryId: number) =>
         apiFetch(`/api/categories/${categoryId}/stages/progress`),
+
+    /** Get stages created by the current professor */
+    getMyStages: (skip = 0, limit = 100) =>
+        apiFetch(`/api/stages/me?skip=${skip}&limit=${limit}`),
 
     /** Create a new stage */
     create: (data: any) =>
