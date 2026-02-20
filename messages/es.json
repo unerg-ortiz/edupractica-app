@@ -206,6 +206,45 @@
         "contactSupport": "Contactar Soporte",
         "logout": "Cerrar Sesión"
     },
+    "Professor": {
+        "title": "Resumen de Actividad",
+        "subtitle": "Gestiona tus temas y revisa el progreso académico.",
+        "metrics": {
+            "total": "Total de Temas",
+            "approved": "Aprobados",
+            "pending": "Pendientes",
+            "rejected": "Rechazados"
+        },
+        "content": {
+            "title": "Gestión de Contenido",
+            "viewAll": "Ver Todo",
+            "status": {
+                "published": "PUBLICADO",
+                "review": "REVISIÓN",
+                "rejected": "RECHAZADO"
+            },
+            "lastUpdate": "Actualizado {time}",
+            "duplicate": "Contenido duplicado",
+            "actions": {
+                "edit": "Editar",
+                "progress": "Progreso",
+                "fix": "Corregir",
+                "view": "Ver"
+            }
+        },
+        "nav": {
+            "home": "Inicio",
+            "myTopics": "Mis Temas",
+            "transfer": "Transferencia",
+            "reports": "Reportes",
+            "students": "Estudiantes",
+            "settings": "Configuración",
+            "transferButton": "Transferencia de Contenido",
+            "createButton": "Crear Nuevo Tema"
+        },
+        "welcome": "Bienvenida,",
+        "profName": "Prof. Elena"
+    },
     "ContentReview": {
         "title": "Revisión de Contenido",
         "subtitle": "V2 DETALLADA",
