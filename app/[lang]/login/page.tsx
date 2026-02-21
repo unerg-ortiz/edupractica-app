@@ -2,21 +2,34 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ChevronLeft, Eye, EyeOff, Loader2, X } from "lucide-react";
 import { auth } from "@/lib/api";
 
 export default function LoginPage() {
     const t = useTranslations("Auth");
     const router = useRouter();
     const { lang } = useParams();
+    const searchParams = useSearchParams();
+    const isRegistered = searchParams.get("registered") === "true";
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showRegisterSuccess, setShowRegisterSuccess] = useState(false);
+
+    useEffect(() => {
+        if (isRegistered) {
+            setShowRegisterSuccess(true);
+            const timer = setTimeout(() => {
+                setShowRegisterSuccess(false);
+            }, 5000); // 5 seconds auto-hide
+            return () => clearTimeout(timer);
+        }
+    }, [isRegistered]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -42,7 +55,7 @@ export default function LoginPage() {
             } else if (data.user_role === "professor") {
                 router.push(`/${lang}/professor`);
             } else {
-                router.push(`/${lang}/learning-path`);
+                router.push(`/${lang}/student/dashboard`);
             }
         } catch (err: any) {
             setError(err.message || "Error al iniciar sesión");
@@ -66,6 +79,19 @@ export default function LoginPage() {
                     <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">{t("welcome")}</h1>
                     <p className="text-slate-400 text-lg">{t("subText")}</p>
                 </div>
+
+                {/* Success Message from Registration */}
+                {showRegisterSuccess && !error && (
+                    <div className="mb-6 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium flex items-center justify-between gap-2">
+                        <span>¡Cuenta creada con éxito! Ya puedes iniciar sesión.</span>
+                        <button
+                            onClick={() => setShowRegisterSuccess(false)}
+                            className="text-emerald-500/50 hover:text-emerald-400 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
 
                 {/* Error Message */}
                 {error && (

@@ -5,28 +5,27 @@ import Link from 'next/link';
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
-    Home,
-    BookOpen,
-    ArrowRightLeft,
-    BarChart2,
+    LayoutGrid,
+    Shapes,
     Users,
     Settings,
-    LogOut
+    LogOut,
+    CheckCircle2,
+    BarChart2
 } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function ProfessorSidebar() {
-    const t = useTranslations('Professor.nav');
+export default function AdminSidebar() {
+    const t = useTranslations('Admin.nav');
     const pathname = usePathname();
     const { lang } = useParams();
     const router = useRouter();
 
     const menuItems = [
-        { id: 'home', icon: Home, label: t('home'), href: `/${lang}/professor` },
-        { id: 'topics', icon: BookOpen, label: 'Mi Contenido', href: `/${lang}/professor` },
-        { id: 'transfer', icon: ArrowRightLeft, label: t('transfer'), href: `/${lang}/professor/content-transfer/initiate` },
-        { id: 'reports', icon: BarChart2, label: t('reports'), href: `/${lang}/professor/analytics` },
-        { id: 'students', icon: Users, label: t('students'), href: `/${lang}/professor/students` },
+        { id: 'review', icon: CheckCircle2, label: 'Revisión', href: `/${lang}/admin/content-review` },
+        { id: 'categories', icon: Shapes, label: t('categories'), href: `/${lang}/admin/categories` },
+        { id: 'users', icon: Users, label: t('users'), href: `/${lang}/admin/users` },
+        { id: 'analytics', icon: BarChart2, label: 'Analytics', href: `/${lang}/admin/analytics` },
     ];
 
     const handleLogout = () => {
@@ -55,7 +54,7 @@ export default function ProfessorSidebar() {
             {/* Navigation */}
             <nav className="flex-1 px-4 py-4 space-y-2">
                 {menuItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname === item.href || pathname?.startsWith(item.href);
                     return (
                         <Link
                             key={item.id}
@@ -93,17 +92,17 @@ export default function ProfessorSidebar() {
                     <div className="relative group cursor-pointer">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-blue-500/50 transition-transform group-hover:scale-110">
                             <span className="text-white font-black text-lg">
-                                {userName ? userName.charAt(0).toUpperCase() : 'P'}
+                                {userName ? userName.charAt(0).toUpperCase() : 'A'}
                             </span>
                         </div>
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#0F172A] rounded-full animate-pulse" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-white font-black text-sm truncate leading-none mb-1">
-                            {userName || 'Profesor'}
+                            {userName || 'Admin'}
                         </p>
                         <p className="text-slate-500 font-bold text-[10px] truncate uppercase tracking-widest opacity-60">
-                            {userEmail || 'profesor@edu.com'}
+                            {userEmail || 'admin@edu.com'}
                         </p>
                     </div>
                     <button 

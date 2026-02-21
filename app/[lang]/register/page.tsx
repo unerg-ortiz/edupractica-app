@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronLeft, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff, Loader2, ArrowRight, X } from "lucide-react";
 import { auth } from "@/lib/api";
 
 type Role = "student" | "professor" | "admin";
@@ -24,6 +24,7 @@ export default function RegisterPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -44,8 +45,12 @@ export default function RegisterPage() {
                 full_name: `${firstName} ${lastName}`.trim(),
             });
 
-            // Redirect to login after successful signup
-            router.push(`/${lang}/login?registered=true`);
+            setShowSuccessToast(true);
+
+            // Redirect after 2 seconds to let the user see the success message
+            setTimeout(() => {
+                router.push(`/${lang}/login?registered=true`);
+            }, 2000);
         } catch (err: any) {
             setError(err.message || "Error al crear la cuenta");
         } finally {
@@ -249,6 +254,27 @@ export default function RegisterPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Success Notification */}
+            {showSuccessToast && (
+                <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in fade-in zoom-in duration-300 w-full max-w-sm px-6">
+                    <div className="bg-[#131B2E]/90 border border-emerald-500/50 rounded-[32px] p-8 backdrop-blur-xl shadow-[0_0_50px_rgba(16,185,129,0.2)] text-center relative">
+                        <button
+                            onClick={() => setShowSuccessToast(false)}
+                            className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">¡Registro completado!</h3>
+                        <p className="text-slate-400">Tu cuenta ha sido creada exitosamente. Redirigiendo al inicio de sesión...</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

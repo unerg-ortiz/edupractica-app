@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, MoreHorizontal, AlertTriangle, Trash2 } from 'lucide-react';
-import Link from 'next/link';
-import clsx from 'clsx'; // Assuming clsx is available based on package.json
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import clsx from 'clsx';
 
 export default function ProfilePage() {
     const t = useTranslations('Profile');
@@ -27,20 +26,8 @@ export default function ProfilePage() {
     const isDeleteEnabled = deleteInput === 'BORRAR';
 
     return (
-        <div className="min-h-screen bg-[#0f111a] text-white p-4 font-sans selection:bg-red-500 selection:text-white">
-            {/* Header */}
-            <header className="flex items-center justify-between mb-8 pt-2">
-                <Link href="/" className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <ArrowLeft className="w-6 h-6 text-gray-400" />
-                </Link>
-                <h1 className="text-xl font-bold tracking-wide">{t('title')}</h1>
-                <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <MoreHorizontal className="w-6 h-6 text-gray-400" />
-                </button>
-            </header>
-
-            <div className="max-w-md mx-auto space-y-8">
-                {/* Account Configuration Section */}
+        <div className="min-h-screen bg-[#050511] text-white p-4 font-sans selection:bg-red-500 selection:text-white">
+            <div className="max-w-md mx-auto space-y-8 py-8">{/* Account Configuration Section */}
                 <section>
                     <h2 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-wider">
                         {t('configuration')}

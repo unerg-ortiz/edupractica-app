@@ -3,30 +3,24 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import {
     Home,
-    BookOpen,
-    ArrowRightLeft,
-    BarChart2,
-    Users,
+    Map,
+    Trophy,
+    User,
     Settings,
     LogOut
 } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function ProfessorSidebar() {
-    const t = useTranslations('Professor.nav');
+export default function StudentSidebar() {
     const pathname = usePathname();
     const { lang } = useParams();
     const router = useRouter();
 
     const menuItems = [
-        { id: 'home', icon: Home, label: t('home'), href: `/${lang}/professor` },
-        { id: 'topics', icon: BookOpen, label: 'Mi Contenido', href: `/${lang}/professor` },
-        { id: 'transfer', icon: ArrowRightLeft, label: t('transfer'), href: `/${lang}/professor/content-transfer/initiate` },
-        { id: 'reports', icon: BarChart2, label: t('reports'), href: `/${lang}/professor/analytics` },
-        { id: 'students', icon: Users, label: t('students'), href: `/${lang}/professor/students` },
+        { id: 'dashboard', icon: Home, label: 'Mi Panel', href: `/${lang}/student/dashboard` },
+        { id: 'achievements', icon: Trophy, label: 'Logros', href: `/${lang}/student/achievements` },
     ];
 
     const handleLogout = () => {
@@ -45,7 +39,7 @@ export default function ProfessorSidebar() {
             {/* Logo */}
             <div className="p-8">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                    <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
                         <span className="text-white font-black text-xl">E</span>
                     </div>
                     <span className="text-white font-black text-2xl tracking-tight">EduPráctica</span>
@@ -63,7 +57,7 @@ export default function ProfessorSidebar() {
                             className={clsx(
                                 "flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden",
                                 isActive
-                                    ? "bg-blue-600 text-white shadow-xl shadow-blue-600/30"
+                                    ? "bg-cyan-500 text-white shadow-xl shadow-cyan-500/30"
                                     : "text-slate-500 hover:text-white hover:bg-white/5"
                             )}
                         >
@@ -86,24 +80,24 @@ export default function ProfessorSidebar() {
                     className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:text-white hover:bg-white/5 transition-all group"
                 >
                     <Settings className="w-6 h-6 text-slate-500 group-hover:text-white transition-colors" />
-                    <span className="font-bold text-lg">{t('settings')}</span>
+                    <span className="font-bold text-lg">Configuración</span>
                 </Link>
 
                 <div className="mt-4 p-5 bg-[#0F172A]/80 backdrop-blur-xl rounded-[32px] border border-white/5 flex items-center gap-4 shadow-2xl">
                     <div className="relative group cursor-pointer">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-blue-500/50 transition-transform group-hover:scale-110">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center border-2 border-cyan-400/50 transition-transform group-hover:scale-110">
                             <span className="text-white font-black text-lg">
-                                {userName ? userName.charAt(0).toUpperCase() : 'P'}
+                                {userName ? userName.charAt(0).toUpperCase() : 'E'}
                             </span>
                         </div>
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#0F172A] rounded-full animate-pulse" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-white font-black text-sm truncate leading-none mb-1">
-                            {userName || 'Profesor'}
+                            {userName || 'Estudiante'}
                         </p>
                         <p className="text-slate-500 font-bold text-[10px] truncate uppercase tracking-widest opacity-60">
-                            {userEmail || 'profesor@edu.com'}
+                            {userEmail || 'estudiante@edu.com'}
                         </p>
                     </div>
                     <button 
