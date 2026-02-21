@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import {
@@ -31,8 +31,13 @@ export default function StudentSidebar() {
         router.push(`/${lang}/login`);
     };
 
-    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
-    const userName = typeof window !== 'undefined' ? localStorage.getItem('user_name') : null;
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        setUserEmail(localStorage.getItem('user_email'));
+        setUserName(localStorage.getItem('user_name'));
+    }, []);
 
     return (
         <aside className="hidden lg:flex flex-col w-72 bg-[#080C14] border-r border-white/5 h-screen sticky top-0">
@@ -100,7 +105,7 @@ export default function StudentSidebar() {
                             {userEmail || 'estudiante@edu.com'}
                         </p>
                     </div>
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="p-2 text-slate-500 hover:text-red-500 transition-colors"
                         title="Cerrar sesión"

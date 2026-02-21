@@ -12,7 +12,7 @@
 
 # testing and vibe coding
 /coverage
-/vibe
+.vibe
 
 # next.js
 /.next/

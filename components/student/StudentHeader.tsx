@@ -26,8 +26,13 @@ export default function StudentHeader() {
         router.push(`/${lang}/login`);
     };
 
-    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
-    const userName = typeof window !== 'undefined' ? localStorage.getItem('user_name') : null;
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        setUserEmail(localStorage.getItem('user_email'));
+        setUserName(localStorage.getItem('user_name'));
+    }, []);
 
     return (
         <header className="sticky top-0 z-50 bg-[#080C14]/95 backdrop-blur-lg border-b border-white/5">

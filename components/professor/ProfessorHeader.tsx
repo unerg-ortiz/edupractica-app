@@ -30,8 +30,26 @@ export default function ProfessorHeader() {
         router.push(`/${lang}/login`);
     };
 
-    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
-    const userName = typeof window !== 'undefined' ? localStorage.getItem('user_name') : null;
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userName, setUserName] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        const storedName = localStorage.getItem('user_name');
+        const storedEmail = localStorage.getItem('user_email');
+
+        if (storedName) setUserName(storedName);
+        if (storedEmail) setUserEmail(storedEmail);
+
+        // Fetch to ensure it's up to date
+        import('@/lib/api').then(({ users }) => {
+            users.getMe().then(user => {
+                setUserName(user.full_name);
+                setUserEmail(user.email);
+                localStorage.setItem('user_name', user.full_name);
+                localStorage.setItem('user_email', user.email);
+            }).catch(console.error);
+        });
+    }, []);
 
     return (
         <header className="sticky top-0 z-50 bg-[#080C14]/95 backdrop-blur-lg border-b border-white/5">

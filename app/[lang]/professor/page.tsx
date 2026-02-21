@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { analytics, topics, categories } from '@/lib/api';
+import { analytics, topics, categories, users as usersApi } from '@/lib/api';
 
 interface ProfessorTopic {
     id: number;
@@ -49,6 +49,7 @@ export default function ProfessorDashboard() {
     const [metricsData, setMetricsData] = useState({ total: 0, approved: 0, pending: 0, rejected: 0 });
     const [topicsList, setTopicsList] = useState<ProfessorTopic[]>([]);
     const [categoryMap, setCategoryMap] = useState<Record<number, string>>({});
+    const [user, setUser] = useState<{ full_name?: string } | null>(null);
 
     useEffect(() => {
         loadDashboardData();
@@ -57,14 +58,16 @@ export default function ProfessorDashboard() {
     const loadDashboardData = async () => {
         setIsLoading(true);
         try {
-            const [summary, myTopics, cats] = await Promise.all([
+            const [summary, myTopics, cats, userData] = await Promise.all([
                 analytics.getProfessorSummary().catch(() => ({ approved: 0, pending: 0, rejected: 0, total: 0 })),
                 topics.getMyTopics().catch(() => []),
-                categories.getAll().catch(() => [])
+                categories.getAll().catch(() => []),
+                usersApi.getMe().catch(() => null)
             ]);
 
             setMetricsData(summary);
             setTopicsList(myTopics);
+            setUser(userData);
 
             const catMap: Record<number, string> = {};
             if (Array.isArray(cats)) {
@@ -148,21 +151,20 @@ export default function ProfessorDashboard() {
                 {/* Mobile Header */}
                 <header className="lg:hidden flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full ring-2 ring-green-500/30 p-0.5">
-                            <img
-                                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop"
-                                className="w-full h-full rounded-full object-cover"
-                                alt="User"
-                            />
+                        <div className="w-10 h-10 rounded-full ring-2 ring-blue-500/30 p-0.5 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black">
+                            {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'P'}
                         </div>
                         <div>
                             <p className="text-slate-500 text-[10px] font-bold leading-none mb-1">{t('welcome')}</p>
-                            <p className="text-white font-black text-lg leading-none">Prof. Elena</p>
+                            <p className="text-white font-black text-lg leading-none">{user?.full_name || 'Profesor'}</p>
                         </div>
                     </div>
-                    <button className="w-10 h-10 bg-[#0F172A] border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                    <Link
+                        href={`/${lang}/profile`}
+                        className="w-10 h-10 bg-[#0F172A] border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                    >
                         <Settings className="w-5 h-5" />
-                    </button>
+                    </Link>
                 </header>
 
                 {/* Desktop Header */}

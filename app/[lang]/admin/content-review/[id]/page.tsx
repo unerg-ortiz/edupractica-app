@@ -18,21 +18,18 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import clsx from 'clsx';
 import { contentReview, categories as categoriesApi } from '@/lib/api';
 
-interface StageDetail {
+interface TopicDetail {
     id: number;
     title: string;
     description: string | null;
-    content: string | null;
     category_id: number;
     professor_id: number | null;
     approval_status: string;
     submitted_at: string | null;
-    media_url: string | null;
-    media_type: string | null;
-    media_filename: string | null;
-    order: number;
+    stages: any[];
 }
 
 export default function ContentReviewPage() {
@@ -40,7 +37,8 @@ export default function ContentReviewPage() {
     const { id, lang } = useParams();
     const router = useRouter();
     const [adminNotes, setAdminNotes] = useState('');
-    const [stage, setStage] = useState<StageDetail | null>(null);
+    const [topic, setTopic] = useState<TopicDetail | null>(null);
+    const [selectedStage, setSelectedStage] = useState<any>(null);
     const [categoryName, setCategoryName] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,8 +57,11 @@ export default function ContentReviewPage() {
             const stageId = Number(id);
             if (isNaN(stageId)) throw new Error("Invalid ID");
 
-            const data = await contentReview.getStage(stageId);
-            setStage(data);
+            const data = await contentReview.getTopic(stageId);
+            setTopic(data);
+            if (data.stages && data.stages.length > 0) {
+                setSelectedStage(data.stages[0]);
+            }
 
             // Fetch category name
             if (data.category_id) {
@@ -79,10 +80,10 @@ export default function ContentReviewPage() {
     };
 
     const handleReview = async (approved: boolean) => {
-        if (!stage) return;
+        if (!topic) return;
         setIsSubmitting(true);
         try {
-            await contentReview.review(stage.id, approved, adminNotes);
+            await contentReview.review(topic.id, approved, adminNotes);
             // Redirect back to dashboard on success
             router.push(`/${lang}/admin/content-review`);
         } catch (err: any) {
@@ -113,7 +114,7 @@ export default function ContentReviewPage() {
         );
     }
 
-    if (error || !stage) {
+    if (error || !topic) {
         return (
             <div className="min-h-screen bg-[#080C14] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -139,10 +140,10 @@ export default function ContentReviewPage() {
                         </Link>
                         <div className="flex flex-col">
                             <h1 className="text-xl font-bold tracking-tight text-white/90">
-                                {stage.title}
+                                {topic.title}
                             </h1>
                             <p className="text-[10px] uppercase tracking-[0.3em] text-blue-500 font-black">
-                                {t('subtitle') || 'REVISIÓN DE CONTENIDO'}
+                                {t('subtitle') || 'REVISIÓN DE TEMA'}
                             </p>
                         </div>
                     </div>
@@ -152,7 +153,7 @@ export default function ContentReviewPage() {
                             {t('panelTitle') || 'PANEL DE ADMINISTRACIÓN'}
                         </p>
                         <p className="text-[10px] font-bold">
-                            {formatDate(stage.submitted_at)}
+                            {formatDate(topic.submitted_at)}
                         </p>
                     </div>
 
@@ -168,13 +169,13 @@ export default function ContentReviewPage() {
                     <div className="lg:col-span-7 space-y-10">
                         {/* Video Player / Media Preview */}
                         <div className="relative aspect-video rounded-[32px] overflow-hidden bg-slate-900 shadow-2xl group border border-white/10">
-                            {stage.media_url ? (
+                            {selectedStage?.media_url ? (
                                 <>
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                                        <p className="text-slate-400 text-sm font-medium">Vista previa de medio: {stage.media_type}</p>
+                                        <p className="text-slate-400 text-sm font-medium">Vista previa de medio: {selectedStage.media_type}</p>
                                     </div>
                                     <img
-                                        src={stage.media_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1964&auto=format&fit=crop"}
+                                        src={selectedStage.media_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1964&auto=format&fit=crop"}
                                         alt="Thumbnail"
                                         className="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-700"
                                     />
@@ -197,16 +198,16 @@ export default function ContentReviewPage() {
                         <div className="space-y-6">
                             <div className="flex items-center gap-6">
                                 <span className="bg-[#1E293B] px-3 py-1.5 rounded-md text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-500/10">
-                                    {categoryName || `CAT #${stage.category_id}`}
+                                    {categoryName || `CAT #${topic.category_id}`}
                                 </span>
                                 <div className="flex items-center gap-2 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                                     <Calendar className="w-3.5 h-3.5" />
-                                    Enviado: {formatDate(stage.submitted_at)}
+                                    Enviado: {formatDate(topic.submitted_at)}
                                 </div>
                             </div>
 
                             <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.15]">
-                                {stage.title}
+                                {topic.title}
                             </h2>
 
                             <div className="flex flex-wrap gap-4">
@@ -214,14 +215,14 @@ export default function ContentReviewPage() {
                                     <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
                                         <User className="w-4 h-4 text-blue-500" />
                                     </div>
-                                    <span className="text-sm font-bold text-slate-300">Profesor #{stage.professor_id || '?'}</span>
+                                    <span className="text-sm font-bold text-slate-300">Profesor #{topic.professor_id || '?'}</span>
                                 </div>
                                 <div className="bg-[#111827] border border-white/5 px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-[#1F2937] transition-colors cursor-default">
                                     <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
                                         <FileText className="w-4 h-4 text-blue-500" />
                                     </div>
                                     <span className="text-sm font-bold text-slate-300">
-                                        Orden: {stage.order}
+                                        {topic.stages.length} Etapas
                                     </span>
                                 </div>
                             </div>
@@ -234,20 +235,111 @@ export default function ContentReviewPage() {
                                 <h3 className="text-2xl font-black tracking-tight text-white/95">Descripción</h3>
                             </div>
                             <p className="text-xl text-slate-400 leading-relaxed font-medium">
-                                {stage.description || "Sin descripción proporcionada."}
+                                {topic.description || "Sin descripción proporcionada."}
                             </p>
                         </div>
 
-                        {/* Content Section */}
+                        {/* Stages Selection */}
                         <div className="space-y-6 pt-4">
-                            <div className="flex items-center gap-4">
-                                <div className="w-1.5 h-8 bg-purple-600 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.3)]" />
-                                <h3 className="text-2xl font-black tracking-tight text-white/95">Contenido Educativo</h3>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-1.5 h-8 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.3)]" />
+                                    <h3 className="text-2xl font-black tracking-tight text-white/95">Etapas del Tema</h3>
+                                </div>
+                                <span className="text-slate-500 text-sm font-bold">{topic.stages.length} etapas registradas</span>
                             </div>
-                            <div className="bg-[#111827] p-6 rounded-2xl border border-white/5 text-slate-300">
-                                {stage.content || "Sin contenido de texto."}
+
+                            <div className="grid grid-cols-1 gap-4">
+                                {topic.stages.map((st: any) => (
+                                    <button
+                                        key={st.id}
+                                        onClick={() => setSelectedStage(st)}
+                                        className={clsx(
+                                            "flex items-center justify-between p-6 rounded-3xl border transition-all text-left group",
+                                            selectedStage?.id === st.id
+                                                ? "bg-blue-600/10 border-blue-500/50 shadow-[0_0_30px_rgba(37,99,235,0.1)]"
+                                                : "bg-[#111827] border-white/5 hover:border-white/10"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-6">
+                                            <div className={clsx(
+                                                "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl transition-colors",
+                                                selectedStage?.id === st.id ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-500"
+                                            )}>
+                                                {st.order}
+                                            </div>
+                                            <div>
+                                                <h4 className={clsx(
+                                                    "font-bold text-lg transition-colors",
+                                                    selectedStage?.id === st.id ? "text-blue-400" : "text-slate-200"
+                                                )}>
+                                                    {st.title}
+                                                </h4>
+                                                <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">{st.media_type || 'Texto'}</p>
+                                            </div>
+                                        </div>
+                                        <ChevronRight className={clsx(
+                                            "w-5 h-5 transition-transform group-hover:translate-x-1",
+                                            selectedStage?.id === st.id ? "text-blue-500" : "text-slate-700"
+                                        )} />
+                                    </button>
+                                ))}
                             </div>
                         </div>
+
+                        {/* Selected Stage Content */}
+                        {selectedStage && (
+                            <div className="space-y-6 pt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-1.5 h-8 bg-purple-600 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.3)]" />
+                                    <h3 className="text-2xl font-black tracking-tight text-white/95">
+                                        Contenido: {selectedStage.title}
+                                    </h3>
+                                </div>
+                                <div className="bg-[#111827] p-10 rounded-[40px] border border-white/5 text-slate-300 leading-relaxed text-lg font-medium whitespace-pre-wrap shadow-inner relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                                        <FileText className="w-24 h-24" />
+                                    </div>
+                                    {selectedStage.content || "Sin contenido de texto."}
+
+                                    {selectedStage.challenge_description && (
+                                        <div className="mt-10 p-8 bg-blue-500/5 rounded-3xl border border-blue-500/10">
+                                            <h5 className="text-blue-400 font-black text-xs uppercase tracking-widest mb-4">Desafío / Aplicación</h5>
+                                            <p className="text-slate-400 italic">{selectedStage.challenge_description}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Multiple Media Files List */}
+                                    {selectedStage.media_files && selectedStage.media_files.length > 0 && (
+                                        <div className="mt-10 space-y-4">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="w-1 h-4 bg-blue-500 rounded-full" />
+                                                <h5 className="text-white font-black text-[10px] uppercase tracking-[0.2em]">Material Adjunto ({selectedStage.media_files.length})</h5>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {selectedStage.media_files.map((file: any, idx: number) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={file.url.startsWith('http') ? file.url : `http://localhost:8000/${file.url}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 hover:border-blue-500/20 transition-all group"
+                                                    >
+                                                        <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center group-hover:bg-blue-600/20 transition-colors">
+                                                            {file.type === 'video' ? <Play className="w-4 h-4 text-blue-400" /> : <FileText className="w-4 h-4 text-blue-400" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-0.5">{file.type}</p>
+                                                            <p className="text-xs font-bold text-slate-300 truncate group-hover:text-white transition-colors">{file.filename || 'Ver Material'}</p>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Steps & Admin Input */}

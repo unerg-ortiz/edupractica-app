@@ -15,19 +15,24 @@ import {
     CheckCircle2,
     ArrowLeft,
     PlusCircle,
-    Save
+    Save,
+    Music,
+    FileUp,
+    Loader2
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { topics, stages as stageService } from '@/lib/api';
+import { topics, stages as stageService, mediaApi, categories as categoriesApi } from '@/lib/api';
 
 interface StageData {
     id: string;
     title: string;
     description: string;
     content: string;
-    mediaType: 'none' | 'video' | 'image' | 'audio';
+    mediaType: 'none' | 'video' | 'image' | 'audio' | 'document';
     mediaUrl?: string;
+    mediaFilename?: string;
+    mediaFiles?: { url: string; type: string; filename: string }[];
     challengeType: 'classification' | 'matching' | 'quiz';
     interactiveConfig: any;
 }
@@ -44,6 +49,58 @@ export default function ThemeBuilderPage() {
         description: '',
         categoryId: '',
     });
+
+    const [categoriesList, setCategoriesList] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await categoriesApi.getAll();
+                setCategoriesList(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Map mediaType to backend expected value
+            const currentMediaType = stages[activeStageIndex].mediaType;
+            formData.append('media_type', currentMediaType === 'document' ? 'document' : currentMediaType);
+
+            const data = await mediaApi.upload(formData);
+            const newMedia = {
+                url: data.url,
+                type: currentMediaType === 'document' ? 'document' : currentMediaType as string,
+                filename: data.filename
+            };
+
+            const currentFiles = stages[activeStageIndex].mediaFiles || [];
+            updateStage(activeStageIndex, {
+                mediaUrl: data.url,
+                mediaFilename: data.filename,
+                mediaFiles: [...currentFiles, newMedia]
+            });
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert(`Error al subir el archivo: ${error.message}`);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     const [stages, setStages] = useState<StageData[]>([
         {
@@ -113,8 +170,9 @@ export default function ThemeBuilderPage() {
                     order: i + 1,
                     media_type: s.mediaType === 'none' ? null : s.mediaType,
                     media_url: s.mediaUrl || null,
+                    media_filename: s.mediaFilename || null,
+                    media_files: s.mediaFiles || [],
                     interactive_config: s.interactiveConfig || {},
-                    category_id: parseInt(topicData.categoryId),
                 });
             }
 
@@ -274,10 +332,11 @@ export default function ThemeBuilderPage() {
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30 transition-all font-bold appearance-none cursor-pointer"
                                             >
                                                 <option value="" className="bg-[#0F172A]">Seleccionar Categoría</option>
-                                                <option value="1" className="bg-[#0F172A]">Matemáticas</option>
-                                                <option value="2" className="bg-[#0F172A]">Ciencias Naturales</option>
-                                                <option value="3" className="bg-[#0F172A]">Lenguaje</option>
-                                                <option value="4" className="bg-[#0F172A]">Historia</option>
+                                                {categoriesList.map((cat) => (
+                                                    <option key={cat.id} value={cat.id.toString()} className="bg-[#0F172A]">
+                                                        {cat.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
@@ -338,25 +397,117 @@ export default function ThemeBuilderPage() {
                                             {/* Media Selection */}
                                             <div className="space-y-4">
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Apoyo Audiovisual</label>
-                                                <div className="grid grid-cols-3 gap-4">
+
+                                                {/* Hidden File Input */}
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileSelect}
+                                                    className="hidden"
+                                                    accept={
+                                                        stages[activeStageIndex].mediaType === 'video' ? 'video/*' :
+                                                            stages[activeStageIndex].mediaType === 'image' ? 'image/*' :
+                                                                stages[activeStageIndex].mediaType === 'audio' ? 'audio/*' :
+                                                                    stages[activeStageIndex].mediaType === 'document' ? '.pdf,.doc,.docx,.txt' :
+                                                                        '*'
+                                                    }
+                                                />
+
+                                                <div className="grid grid-cols-5 gap-4">
                                                     {[
                                                         { id: 'video', icon: Video, label: 'Video' },
                                                         { id: 'image', icon: ImageIcon, label: 'Imagen' },
+                                                        { id: 'audio', icon: Music, label: 'Audio' },
+                                                        { id: 'document', icon: FileUp, label: 'Archivo' },
                                                         { id: 'none', icon: Type, label: 'Ninguno' },
                                                     ].map((m) => (
                                                         <button
                                                             key={m.id}
-                                                            onClick={() => updateStage(activeStageIndex, { mediaType: m.id as any })}
+                                                            onClick={() => {
+                                                                updateStage(activeStageIndex, { mediaType: m.id as any });
+                                                                if (m.id !== 'none') {
+                                                                    // Wait for state to update so accept attribute is correct
+                                                                    setTimeout(() => fileInputRef.current?.click(), 10);
+                                                                }
+                                                            }}
+                                                            disabled={isUploading}
                                                             className={clsx(
                                                                 "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all active:scale-95",
-                                                                stages[activeStageIndex].mediaType === m.id ? "bg-blue-600/10 border-blue-500/50 text-blue-400" : "bg-white/5 border-white/10 text-slate-500 hover:text-white"
+                                                                stages[activeStageIndex].mediaType === m.id ? "bg-blue-600/10 border-blue-500/50 text-blue-400" : "bg-white/5 border-white/10 text-slate-500 hover:text-white",
+                                                                isUploading && "opacity-50 cursor-not-allowed"
                                                             )}
                                                         >
-                                                            <m.icon className="w-5 h-5" />
+                                                            {isUploading && stages[activeStageIndex].mediaType === m.id ? (
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                            ) : (
+                                                                <m.icon className="w-5 h-5" />
+                                                            )}
                                                             <span className="text-[9px] font-black uppercase tracking-widest">{m.label}</span>
                                                         </button>
                                                     ))}
                                                 </div>
+
+                                                {/* Uploaded Files List */}
+                                                {stages[activeStageIndex].mediaFiles && stages[activeStageIndex].mediaFiles!.length > 0 && (
+                                                    <div className="mt-4 space-y-3">
+                                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Archivos Cargados ({stages[activeStageIndex].mediaFiles?.length})</p>
+                                                        {stages[activeStageIndex].mediaFiles?.map((file, idx) => (
+                                                            <div key={idx} className="flex items-center justify-between p-4 bg-blue-600/5 border border-blue-500/10 rounded-2xl group transition-all hover:bg-blue-600/10">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center">
+                                                                        <CheckCircle2 className="w-5 h-5 text-blue-400" />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] font-black text-white uppercase tracking-wider">
+                                                                            {file.type === 'document' ? 'ARCHIVO' : file.type.toUpperCase()} CARGADO
+                                                                        </span>
+                                                                        <span className="text-[9px] text-slate-500 font-mono truncate max-w-[150px] sm:max-w-[300px]">
+                                                                            {file.filename || file.url}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newFiles = [...(stages[activeStageIndex].mediaFiles || [])];
+                                                                        newFiles.splice(idx, 1);
+                                                                        updateStage(activeStageIndex, {
+                                                                            mediaFiles: newFiles,
+                                                                            ...(newFiles.length === 0
+                                                                                ? { mediaUrl: undefined, mediaFilename: undefined }
+                                                                                : { mediaUrl: newFiles[0].url, mediaFilename: newFiles[0].filename })
+                                                                        });
+                                                                    }}
+                                                                    className="text-[10px] font-black text-red-400 hover:text-red-300 uppercase tracking-widest px-4 py-2 hover:bg-red-500/10 rounded-lg transition-all"
+                                                                >
+                                                                    Eliminar
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Compatibility: If no mediaFiles but has mediaUrl (for existing logic) */}
+                                                {!stages[activeStageIndex].mediaFiles && stages[activeStageIndex].mediaUrl && stages[activeStageIndex].mediaType !== 'none' && (
+                                                    <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between animate-in fade-in zoom-in-95 duration-300">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center">
+                                                                <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-black text-white uppercase tracking-widest">Archivo cargado con éxito</p>
+                                                                <p className="text-[9px] text-slate-500 font-medium truncate max-w-[200px]">
+                                                                    {stages[activeStageIndex].mediaUrl}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => updateStage(activeStageIndex, { mediaUrl: undefined })}
+                                                            className="text-[10px] font-black text-red-500 hover:text-red-400 uppercase tracking-widest px-3 py-1"
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

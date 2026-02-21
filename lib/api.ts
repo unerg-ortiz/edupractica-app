@@ -4,9 +4,12 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     };
+
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     // Merge custom headers, preserving any overrides
     if (options.headers) {
@@ -64,17 +67,17 @@ export const users = {
 // ── Content Review (Admin) ───────────────
 
 export const contentReview = {
-    /** Get all stages pending approval */
+    /** Get all topics pending approval */
     getPending: (skip = 0, limit = 100) =>
-        apiFetch(`/api/review/pending?skip=${skip}&limit=${limit}`),
+        apiFetch(`/api/topics/pending/review?skip=${skip}&limit=${limit}`),
 
-    /** Get a specific stage by ID */
-    getStage: (stageId: number) =>
-        apiFetch(`/api/stages/${stageId}`),
+    /** Get a specific topic by ID for review */
+    getTopic: (topicId: number) =>
+        apiFetch(`/api/topics/${topicId}`),
 
-    /** Approve or reject a stage */
-    review: (stageId: number, approved: boolean, comment?: string) =>
-        apiFetch(`/api/stages/${stageId}/review`, {
+    /** Approve or reject a topic */
+    review: (topicId: number, approved: boolean, comment?: string) =>
+        apiFetch(`/api/topics/${topicId}/review`, {
             method: 'POST',
             body: JSON.stringify({ approved, comment: comment || null }),
         }),
@@ -160,4 +163,11 @@ export const topics = {
 export const categories = {
     getAll: () => apiFetch('/categories/'),
     get: (id: number) => apiFetch(`/categories/${id}`),
+};
+
+export const mediaApi = {
+    upload: (formData: FormData) => apiFetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+    }),
 };
