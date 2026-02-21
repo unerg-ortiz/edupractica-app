@@ -47,6 +47,13 @@ export const auth = {
     },
 };
 
+// ── Users ────────────────────────────────
+
+export const users = {
+    getStudents: (skip = 0, limit = 100) =>
+        apiFetch(`/users/students?skip=${skip}&limit=${limit}`),
+};
+
 // ── Content Review (Admin) ───────────────
 
 export const contentReview = {
@@ -112,6 +119,32 @@ export const stages = {
     complete: (stageId: number) =>
         apiFetch(`/api/stages/${stageId}/complete`, {
             method: 'POST',
+        }),
+};
+
+// ── Topics ───────────────────────────────
+
+export const topics = {
+    /** Get topics created by the current professor */
+    getMyTopics: (skip = 0, limit = 100) =>
+        apiFetch(`/api/topics/me?skip=${skip}&limit=${limit}`),
+
+    /** Create a new topic */
+    create: (data: any) =>
+        apiFetch('/api/topics', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    /** Get a specific topic with its stages */
+    get: (topicId: number) =>
+        apiFetch(`/api/topics/${topicId}`),
+
+    /** Add a stage to a topic */
+    addStage: (topicId: number, data: any) =>
+        apiFetch(`/api/topics/${topicId}/stages`, {
+            method: 'POST',
+            body: JSON.stringify(data),
         }),
 };
 

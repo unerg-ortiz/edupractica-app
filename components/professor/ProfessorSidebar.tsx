@@ -22,10 +22,10 @@ export default function ProfessorSidebar() {
 
     const menuItems = [
         { id: 'home', icon: Home, label: t('home'), href: `/${lang}/professor` },
-        { id: 'topics', icon: BookOpen, label: 'Revisión', href: `/${lang}/admin/content-review` },
+        { id: 'topics', icon: BookOpen, label: 'Mi Contenido', href: `/${lang}/professor` },
         { id: 'transfer', icon: ArrowRightLeft, label: t('transfer'), href: `/${lang}/professor/content-transfer/initiate` },
-        { id: 'reports', icon: BarChart2, label: t('reports'), href: `/${lang}/admin/analytics` },
-        { id: 'students', icon: Users, label: t('students'), href: `/${lang}/admin/users` },
+        { id: 'reports', icon: BarChart2, label: t('reports'), href: `/${lang}/professor/analytics` },
+        { id: 'students', icon: Users, label: t('students'), href: `/${lang}/professor/students` },
     ];
 
     return (
@@ -70,7 +70,7 @@ export default function ProfessorSidebar() {
             {/* Bottom Section */}
             <div className="p-4 space-y-2">
                 <Link
-                    href={`/${lang}/professor/settings`}
+                    href={`/${lang}/profile`}
                     className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:text-white hover:bg-white/5 transition-all group"
                 >
                     <Settings className="w-6 h-6 text-slate-500 group-hover:text-white transition-colors" />

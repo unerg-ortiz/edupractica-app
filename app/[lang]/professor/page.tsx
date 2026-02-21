@@ -21,11 +21,12 @@ import {
     Palette,
     Atom,
     BookMarked,
+    Users,
     Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { analytics, stages, categories } from '@/lib/api';
+import { analytics, topics, categories } from '@/lib/api';
 
 interface ProfessorTopic {
     id: number;
@@ -56,14 +57,14 @@ export default function ProfessorDashboard() {
     const loadDashboardData = async () => {
         setIsLoading(true);
         try {
-            const [summary, myStages, cats] = await Promise.all([
+            const [summary, myTopics, cats] = await Promise.all([
                 analytics.getProfessorSummary().catch(() => ({ approved: 0, pending: 0, rejected: 0, total: 0 })),
-                stages.getMyStages().catch(() => []),
+                topics.getMyTopics().catch(() => []),
                 categories.getAll().catch(() => [])
             ]);
 
             setMetricsData(summary);
-            setTopicsList(myStages);
+            setTopicsList(myTopics);
 
             const catMap: Record<number, string> = {};
             if (Array.isArray(cats)) {
@@ -81,7 +82,7 @@ export default function ProfessorDashboard() {
         { label: t('metrics.total'), value: metricsData.total, icon: BookOpen, color: 'text-slate-400', bg: 'bg-slate-400/5' },
         { label: t('metrics.approved'), value: metricsData.approved, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/5', border: 'border-green-500/10' },
         { label: t('metrics.pending'), value: metricsData.pending, icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/5', border: 'border-blue-500/10' },
-        { label: t('metrics.rejected'), value: metricsData.rejected, icon: XCircle, color: 'text-red-500', bg: 'bg-red-500/5', border: 'border-red-500/10' },
+        { label: 'Total Alumnos', value: (metricsData as any).total_students || 0, icon: Users, color: 'text-indigo-400', bg: 'bg-indigo-400/5', border: 'border-indigo-400/10' },
     ];
 
     const getStatusType = (status: string) => {
@@ -288,11 +289,14 @@ export default function ProfessorDashboard() {
                                                 <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest hidden sm:block">Alumnos</span>
                                             </div>
                                             <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                                                <button className="flex-1 sm:flex-none w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all hover:bg-white/10 active:scale-95 shadow-lg">
+                                                <button
+                                                    onClick={() => router.push(`/${lang}/professor/topics/create?id=${topic.id}`)}
+                                                    className="flex-1 sm:flex-none w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all hover:bg-white/10 active:scale-95 shadow-lg"
+                                                >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => router.push(`/${lang}/admin/analytics`)}
+                                                    onClick={() => router.push(`/${lang}/professor/analytics?topicId=${topic.id}`)}
                                                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600/10 border border-blue-500/10 px-5 py-2.5 rounded-xl text-blue-400 font-black text-xs hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-600/0 hover:shadow-blue-600/20 active:scale-95 uppercase tracking-widest leading-none h-10"
                                                 >
                                                     <BarChart2 className="w-4 h-4" />
@@ -306,10 +310,16 @@ export default function ProfessorDashboard() {
                                         <>
                                             <p className="text-xs font-black text-slate-500 uppercase tracking-widest opacity-60">Pendiente de Revisión</p>
                                             <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                                                <button className="flex-1 sm:flex-none w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all hover:bg-white/10 active:scale-95 shadow-lg">
+                                                <button
+                                                    onClick={() => router.push(`/${lang}/professor/topics/create?id=${topic.id}`)}
+                                                    className="flex-1 sm:flex-none w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all hover:bg-white/10 active:scale-95 shadow-lg"
+                                                >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
-                                                <button className="flex-1 sm:flex-none w-10 h-10 bg-[#111827] border border-white/5 rounded-xl flex items-center justify-center text-blue-500 hover:text-white hover:bg-blue-600 transition-all active:scale-95 shadow-lg">
+                                                <button
+                                                    onClick={() => router.push(`/${lang}/professor/topics/create?id=${topic.id}&view=true`)}
+                                                    className="flex-1 sm:flex-none w-10 h-10 bg-[#111827] border border-white/5 rounded-xl flex items-center justify-center text-blue-500 hover:text-white hover:bg-blue-600 transition-all active:scale-95 shadow-lg"
+                                                >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -323,7 +333,7 @@ export default function ProfessorDashboard() {
                                                 <span>{topic.approval_comment || 'Contenido rechazado'}</span>
                                             </div>
                                             <button
-                                                onClick={() => router.push(`/${lang}/admin/challenges/editor`)}
+                                                onClick={() => router.push(`/${lang}/professor/topics/create?id=${topic.id}&fix=true`)}
                                                 className="w-full sm:w-auto bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-xl font-black text-[10px] transition-all shadow-xl shadow-red-600/20 uppercase tracking-widest active:scale-95 leading-none h-10"
                                             >
                                                 {t('content.actions.fix')}
@@ -348,7 +358,10 @@ export default function ProfessorDashboard() {
             </div>
 
             {/* Create FAB */}
-            <button className="fixed bottom-24 lg:bottom-10 right-6 lg:right-10 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3.5 rounded-full shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] flex items-center gap-3 transition-all hover:scale-105 active:scale-95 group z-50">
+            <button
+                onClick={() => router.push(`/${lang}/professor/topics/create`)}
+                className="fixed bottom-24 lg:bottom-10 right-6 lg:right-10 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3.5 rounded-full shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] flex items-center gap-3 transition-all hover:scale-105 active:scale-95 group z-50"
+            >
                 <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center transition-transform group-hover:rotate-90">
                     <Plus className="w-4 h-4" />
                 </div>

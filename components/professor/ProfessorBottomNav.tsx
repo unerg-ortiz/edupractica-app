@@ -18,10 +18,10 @@ export default function ProfessorBottomNav() {
     const t = useTranslations('Professor.nav');
 
     const navItems = [
-        { id: 'reports', name: t('reports'), icon: LayoutGrid, href: `/${lang}/admin/analytics` },
-        { id: 'students', name: t('students'), icon: Users, href: `/${lang}/admin/users` },
-        { id: 'course', name: 'Revisión', icon: BookOpen, href: `/${lang}/admin/content-review` },
-        { id: 'settings', name: t('settings'), icon: Settings, href: `/${lang}/professor` },
+        { id: 'reports', name: t('reports'), icon: LayoutGrid, href: `/${lang}/professor/analytics` },
+        { id: 'students', name: t('students'), icon: Users, href: `/${lang}/professor/students` },
+        { id: 'course', name: 'Contenido', icon: BookOpen, href: `/${lang}/professor` },
+        { id: 'settings', name: t('settings'), icon: Settings, href: `/${lang}/profile` },
     ];
 
     return (

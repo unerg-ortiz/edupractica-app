@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { auth } from "@/lib/api";
@@ -10,6 +10,7 @@ import { auth } from "@/lib/api";
 export default function LoginPage() {
     const t = useTranslations("Auth");
     const router = useRouter();
+    const { lang } = useParams();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -37,11 +38,11 @@ export default function LoginPage() {
 
             // Redirigir según el rol del usuario
             if (data.user_role === "admin") {
-                router.push("/es/admin/content-review");
+                router.push(`/${lang}/admin/content-review`);
             } else if (data.user_role === "professor") {
-                router.push("/es/professor");
+                router.push(`/${lang}/professor`);
             } else {
-                router.push("/es/learning-path");
+                router.push(`/${lang}/learning-path`);
             }
         } catch (err: any) {
             setError(err.message || "Error al iniciar sesión");
@@ -54,7 +55,7 @@ export default function LoginPage() {
         <div className="min-h-screen w-full bg-[#0B1120] text-slate-200 flex flex-col relative px-6 py-8">
             {/* Back Button */}
             <div className="absolute top-8 left-6">
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href={`/${lang}`} className="hover:text-white transition-colors">
                     <ChevronLeft className="w-8 h-8 text-white" strokeWidth={2.5} />
                 </Link>
             </div>
@@ -122,7 +123,7 @@ export default function LoginPage() {
 
                     <div className="flex justify-end">
                         <Link
-                            href="/forgot-password"
+                            href={`/${lang}/forgot-password`}
                             className="text-blue-500 hover:text-blue-400 text-sm font-medium transition-colors"
                         >
                             {t("forgotPassword")}
@@ -146,7 +147,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Divider */}
-                <div className="relative my-8">
+                {/* <div className="relative my-8">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-slate-800"></div>
                     </div>
@@ -155,12 +156,12 @@ export default function LoginPage() {
                             {t("orContinueWith")}
                         </span>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Social Login */}
-                <div className="flex justify-center gap-6 mb-12">
-                    {/* Google Button */}
-                    <button className="w-14 h-14 rounded-full bg-[#131B2E] border border-slate-700/50 flex items-center justify-center hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 group">
+                {/* <div className="flex justify-center gap-6 mb-12"> */}
+                {/* Google Button */}
+                {/* <button className="w-14 h-14 rounded-full bg-[#131B2E] border border-slate-700/50 flex items-center justify-center hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 group">
                         <svg className="w-6 h-6" viewBox="0 0 24 24">
                             <path
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -179,10 +180,10 @@ export default function LoginPage() {
                                 fill="#EA4335"
                             />
                         </svg>
-                    </button>
+                    </button> */}
 
-                    {/* Microsoft Button */}
-                    <button className="w-14 h-14 rounded-full bg-[#131B2E] border border-slate-700/50 flex items-center justify-center hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 group">
+                {/* Microsoft Button */}
+                {/* <button className="w-14 h-14 rounded-full bg-[#131B2E] border border-slate-700/50 flex items-center justify-center hover:bg-slate-800 hover:border-slate-600 transition-all duration-200 group">
                         <svg className="w-6 h-6" viewBox="0 0 23 23">
                             <path fill="#f3f3f3" d="M0 0h23v23H0z" fillOpacity="0" />
                             <path fill="#f35325" d="M1 1h10v10H1z" />
@@ -191,14 +192,14 @@ export default function LoginPage() {
                             <path fill="#ffba08" d="M12 12h10v10H1z" />
                         </svg>
                     </button>
-                </div>
+                </div> */}
 
                 {/* Footer */}
-                <div className="text-center">
+                <div className="text-center pt-16">
                     <p className="text-slate-400">
                         {t("noAccount")}{" "}
                         <Link
-                            href="/register"
+                            href={`/${lang}/register`}
                             className="text-blue-500 hover:text-blue-400 font-semibold transition-colors"
                         >
                             {t("register")}
