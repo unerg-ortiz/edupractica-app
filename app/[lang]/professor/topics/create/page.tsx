@@ -18,11 +18,21 @@ import {
     Save,
     Music,
     FileUp,
-    Loader2
+    Loader2,
+    ArrowRightLeft,
+    Info
 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import clsx from 'clsx';
 import { topics, stages as stageService, mediaApi, categories as categoriesApi } from '@/lib/api';
+
+// Import Quill dynamically to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill-new'), {
+    ssr: false,
+    loading: () => <div className="h-40 w-full bg-white/5 animate-pulse rounded-2xl" />
+});
+import 'react-quill-new/dist/quill.snow.css';
 
 interface StageData {
     id: string;
@@ -33,13 +43,15 @@ interface StageData {
     mediaUrl?: string;
     mediaFilename?: string;
     mediaFiles?: { url: string; type: string; filename: string }[];
-    challengeType: 'classification' | 'matching' | 'quiz';
+    challengeType: 'classification' | 'matching' | 'quiz' | 'ordering';
     interactiveConfig: any;
 }
 
 export default function ThemeBuilderPage() {
     const { lang } = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const topicId = searchParams.get('id');
     const [isSaving, setIsSaving] = useState(false);
     const [step, setStep] = useState(0); // 0: General Info, 1+: Stages
     const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -63,6 +75,58 @@ export default function ThemeBuilderPage() {
         };
         fetchCategories();
     }, []);
+
+    React.useEffect(() => {
+        if (topicId) {
+            const fetchTopicData = async () => {
+                try {
+                    const data = await topics.get(parseInt(topicId));
+                    setTopicData({
+                        title: data.title,
+                        description: data.description || '',
+                        categoryId: data.category_id.toString(),
+                    });
+
+                    if (data.stages && data.stages.length > 0) {
+                        const mappedStages: StageData[] = data.stages.map((s: any) => {
+                            const challengeType = s.interactive_config?.challengeType || 'quiz';
+                            let config = s.interactive_config?.challengeType ? s.interactive_config[s.interactive_config.challengeType] : (s.interactive_config || {});
+
+                            // Migration: Convert single question quiz to multiple questions structure
+                            if (challengeType === 'quiz' && config.question !== undefined) {
+                                config = {
+                                    questions: [
+                                        {
+                                            id: crypto.randomUUID(),
+                                            question: config.question,
+                                            options: config.options || []
+                                        }
+                                    ]
+                                };
+                            }
+
+                            return {
+                                id: s.id.toString(),
+                                title: s.title,
+                                description: s.description || '',
+                                content: s.content || '',
+                                mediaType: s.media_type || 'none',
+                                mediaUrl: s.media_url,
+                                mediaFilename: s.media_filename,
+                                mediaFiles: s.media_files || [],
+                                challengeType,
+                                interactiveConfig: config
+                            };
+                        });
+                        setStages(mappedStages);
+                    }
+                } catch (error) {
+                    console.error('Error fetching topic data:', error);
+                }
+            };
+            fetchTopicData();
+        }
+    }, [topicId]);
 
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -109,24 +173,107 @@ export default function ThemeBuilderPage() {
             description: '',
             content: '',
             mediaType: 'none',
-            challengeType: 'classification',
-            interactiveConfig: { buckets: [], items: [] },
+            challengeType: 'quiz',
+            interactiveConfig: {
+                questions: [
+                    {
+                        id: crypto.randomUUID(),
+                        question: '',
+                        options: [
+                            { id: crypto.randomUUID(), text: '', isCorrect: true },
+                            { id: crypto.randomUUID(), text: '', isCorrect: false }
+                        ]
+                    }
+                ]
+            },
         }
     ]);
 
+    const validateStageChallenge = (stageIndex: number): { isValid: boolean; errorMsg: string } => {
+        const s = stages[stageIndex];
+        const config = s.interactiveConfig || {};
+        let isValid = false;
+        let errorMsg = "";
+
+        if (s.challengeType === 'quiz') {
+            const hasQuestions = config.questions?.length > 0;
+            if (!hasQuestions) {
+                isValid = false;
+                errorMsg = `El cuestionario necesita al menos una pregunta.`;
+            } else {
+                const allQuestionsValid = config.questions.every((q: any, qi: number) => {
+                    const hasQ = q.question?.trim().length > 0;
+                    const hasOpts = q.options?.length >= 2;
+                    const hasCorrect = q.options?.some((o: any) => o.isCorrect && o.text.trim().length > 0);
+
+                    if (!hasQ) errorMsg = `Pregunta #${qi + 1}: Falta el texto de la pregunta.`;
+                    else if (!hasOpts) errorMsg = `Pregunta #${qi + 1}: Necesita al menos 2 opciones.`;
+                    else if (!hasCorrect) errorMsg = `Pregunta #${qi + 1}: Debes marcar cuál es la respuesta correcta haciendo clic en el círculo.`;
+
+                    return hasQ && hasOpts && hasCorrect;
+                });
+                isValid = allQuestionsValid;
+            }
+            if (!isValid && !errorMsg) errorMsg = `La etapa "${s.title || (stageIndex + 1)}" (Quiz) está incompleta.`;
+        } else if (s.challengeType === 'classification') {
+            const hasBuckets = config.buckets?.length >= 1 && config.buckets.every((b: any) => b.name?.trim().length > 0);
+            const hasItems = config.items?.length >= 1 && config.items.every((it: any) => it.content?.trim().length > 0 && it.bucketId);
+            isValid = hasBuckets && hasItems;
+            if (!isValid) errorMsg = `La etapa "${s.title || (stageIndex + 1)}" (Clasificación) necesita al menos un contenedor con nombre y un elemento asignado.`;
+        } else if (s.challengeType === 'matching') {
+            const hasPairs = config.pairs?.length >= 1 && config.pairs.every((p: any) => p.left?.trim().length > 0 && p.right?.trim().length > 0);
+            isValid = hasPairs;
+            if (!isValid) errorMsg = `La etapa "${s.title || (stageIndex + 1)}" (Relación) necesita al menos un par de elementos con texto en ambos lados.`;
+        } else if (s.challengeType === 'ordering') {
+            const hasItems = config.items?.length >= 2 && config.items.every((it: any) => it.text?.trim().length > 0);
+            isValid = hasItems;
+            if (!isValid) errorMsg = `La etapa "${s.title || (stageIndex + 1)}" (Ordenamiento) necesita al menos 2 elementos con texto para ordenar.`;
+        }
+
+        return { isValid, errorMsg };
+    };
+
     const addStage = () => {
+        // Validate current stage before adding a new one
+        const validation = validateStageChallenge(activeStageIndex);
+        if (!validation.isValid) {
+            alert(validation.errorMsg);
+            return;
+        }
+
         const newStage: StageData = {
             id: crypto.randomUUID(),
             title: `Etapa ${stages.length + 1}`,
             description: '',
             content: '',
             mediaType: 'none',
-            challengeType: 'classification',
-            interactiveConfig: { buckets: [], items: [] },
+            challengeType: 'quiz',
+            interactiveConfig: {
+                questions: [
+                    {
+                        id: crypto.randomUUID(),
+                        question: '',
+                        options: [
+                            { id: crypto.randomUUID(), text: '', isCorrect: true },
+                            { id: crypto.randomUUID(), text: '', isCorrect: false }
+                        ]
+                    }
+                ]
+            },
         };
         setStages([...stages, newStage]);
         setActiveStageIndex(stages.length);
         setStep(1);
+    };
+
+    const goToNextStage = () => {
+        // Validate current stage before moving to next
+        const validation = validateStageChallenge(activeStageIndex);
+        if (!validation.isValid) {
+            alert(validation.errorMsg);
+            return;
+        }
+        setActiveStageIndex(activeStageIndex + 1);
     };
 
     const removeStage = (index: number) => {
@@ -151,19 +298,47 @@ export default function ThemeBuilderPage() {
             return;
         }
 
+        // Validar que cada etapa tenga un reto configurado
+        for (let i = 0; i < stages.length; i++) {
+            const validation = validateStageChallenge(i);
+            if (!validation.isValid) {
+                alert(validation.errorMsg);
+                setActiveStageIndex(i);
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
-            // 1. Create Topic
-            const newTopic = await topics.create({
-                title: topicData.title,
-                description: topicData.description,
-                category_id: parseInt(topicData.categoryId),
-            });
+            // 1. Create or Update Topic
+            let currentTopicId: number;
+            if (topicId) {
+                currentTopicId = parseInt(topicId);
+                await topics.update(currentTopicId, {
+                    title: topicData.title,
+                    description: topicData.description,
+                    category_id: parseInt(topicData.categoryId),
+                });
+
+                // Note: For now, editing might add duplicate stages if we don't clear old ones.
+                // But let's prioritize the form population fix first as requested.
+            } else {
+                const newTopic = await topics.create({
+                    title: topicData.title,
+                    description: topicData.description,
+                    category_id: parseInt(topicData.categoryId),
+                });
+                currentTopicId = newTopic.id;
+            }
 
             // 2. Create Stages for this Topic
+            // If it's an update, we should ideally update existing stages or clear and recreate.
+            // Since we don't have a bulk stage delete yet, we just add them.
             for (let i = 0; i < stages.length; i++) {
                 const s = stages[i];
-                await topics.addStage(newTopic.id, {
+                // We always add them as new for now to ensure all changes are captured, 
+                // but this will cause redundancy in the current simple backend model.
+                await topics.addStage(currentTopicId, {
                     title: s.title,
                     description: s.description || '',
                     content: s.content || '',
@@ -172,7 +347,10 @@ export default function ThemeBuilderPage() {
                     media_url: s.mediaUrl || null,
                     media_filename: s.mediaFilename || null,
                     media_files: s.mediaFiles || [],
-                    interactive_config: s.interactiveConfig || {},
+                    interactive_config: {
+                        challengeType: s.challengeType,
+                        [s.challengeType]: s.interactiveConfig
+                    },
                 });
             }
 
@@ -182,6 +360,22 @@ export default function ThemeBuilderPage() {
             alert('Error al guardar el tema. Verifica que el servidor esté activo.');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!topicId) return;
+        if (!confirm('¿Estás seguro de que deseas eliminar este tema? Esta acción no se puede deshacer.')) return;
+
+        setIsSaving(true);
+        try {
+            await topics.delete(parseInt(topicId));
+            router.push(`/${lang}/professor`);
+        } catch (error) {
+            console.error('Error deleting topic:', error);
+            alert('Error al eliminar el tema. Inténtalo de nuevo.');
+        } finally {
+            setIsSaving(true); // Keep it true to prevent double clicks during redirect
         }
     };
 
@@ -205,6 +399,15 @@ export default function ThemeBuilderPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {topicId && (
+                        <button
+                            onClick={handleDelete}
+                            className="p-2.5 rounded-xl text-red-500/50 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+                            title="Eliminar Tema"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    )}
                     <button className="px-5 py-2.5 rounded-xl text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all">
                         Guardar Borrador
                     </button>
@@ -384,14 +587,16 @@ export default function ThemeBuilderPage() {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Explicación del Tema</label>
-                                                <textarea
-                                                    value={stages[activeStageIndex].content}
-                                                    onChange={(e) => updateStage(activeStageIndex, { content: e.target.value })}
-                                                    rows={8}
-                                                    placeholder="Escribe aquí toda la teoría que quieres que el alumno aprenda en esta etapa..."
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold leading-relaxed placeholder:text-slate-600"
-                                                />
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Contenido del Tema</label>
+                                                <div className="quill-dark-container">
+                                                    <ReactQuill
+                                                        theme="snow"
+                                                        value={stages[activeStageIndex].content}
+                                                        onChange={(content) => updateStage(activeStageIndex, { content })}
+                                                        placeholder="Escribe aquí toda la teoría que quieres que el alumno aprenda en esta etapa..."
+                                                        className="bg-white/5 border border-white/10 rounded-2xl text-white overflow-hidden"
+                                                    />
+                                                </div>
                                             </div>
 
                                             {/* Media Selection */}
@@ -524,15 +729,20 @@ export default function ThemeBuilderPage() {
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tipo de Actividad</label>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     {[
-                                                        { id: 'classification', label: 'Clasificación', desc: 'Arrastrar items a contenedores' },
-                                                        { id: 'matching', label: 'Pareo', desc: 'Conectar conceptos con líneas' },
+                                                        { id: 'quiz', label: 'Cuestionario', desc: 'Opción correcta (Múltiple)', icon: CheckCircle2 },
+                                                        { id: 'classification', label: 'Clasificación', desc: 'Arrastrar a contenedores', icon: Layout },
+                                                        { id: 'matching', label: 'Relación', desc: 'Conectar conceptos/pares', icon: ArrowRightLeft },
+                                                        { id: 'ordering', label: 'Ordenamiento', desc: 'Ordenar una secuencia', icon: Gamepad2 },
                                                     ].map((c) => (
                                                         <button
                                                             key={c.id}
                                                             onClick={() => {
-                                                                const defaultConfig = c.id === 'classification'
-                                                                    ? { buckets: [], items: [] }
-                                                                    : { pairs: [] };
+                                                                let defaultConfig = {};
+                                                                if (c.id === 'classification') defaultConfig = { buckets: [], items: [] };
+                                                                else if (c.id === 'matching') defaultConfig = { pairs: [] };
+                                                                else if (c.id === 'quiz') defaultConfig = { question: '', options: [{ id: crypto.randomUUID(), text: '', isCorrect: true }] };
+                                                                else if (c.id === 'ordering') defaultConfig = { items: [] };
+
                                                                 updateStage(activeStageIndex, {
                                                                     challengeType: c.id as any,
                                                                     interactiveConfig: stages[activeStageIndex].challengeType === c.id
@@ -541,20 +751,171 @@ export default function ThemeBuilderPage() {
                                                                 });
                                                             }}
                                                             className={clsx(
-                                                                "flex flex-col items-start gap-1 p-5 rounded-2xl border transition-all active:scale-95 text-left",
-                                                                stages[activeStageIndex].challengeType === c.id ? "bg-blue-600/10 border-blue-500/50 text-blue-400" : "bg-white/5 border-white/10 text-slate-500 hover:text-white"
+                                                                "flex flex-col items-start gap-1.5 p-5 rounded-2xl border transition-all active:scale-95 text-left group",
+                                                                stages[activeStageIndex].challengeType === c.id
+                                                                    ? "bg-blue-600/10 border-blue-500/50 text-blue-400 ring-2 ring-blue-500/20"
+                                                                    : "bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10"
                                                             )}
                                                         >
-                                                            <span className="text-xs font-black uppercase tracking-widest">{c.label}</span>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <c.icon className={clsx("w-3.5 h-3.5", stages[activeStageIndex].challengeType === c.id ? "text-blue-400" : "text-slate-600 group-hover:text-slate-400")} />
+                                                                <span className="text-xs font-black uppercase tracking-widest">{c.label}</span>
+                                                            </div>
                                                             <span className="text-[9px] font-bold opacity-60 leading-tight">{c.desc}</span>
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
 
+                                            {/* Specialized Editor: Quiz */}
+                                            {stages[activeStageIndex].challengeType === 'quiz' && (
+                                                <div className="space-y-8 pt-6 border-t border-white/5">
+                                                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-4 items-start">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                                            <Info className="w-4 h-4 text-blue-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Guía de Configuración: Cuestionario</h4>
+                                                            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                                                                Escribe tus preguntas y añade las opciones. Haz clic en el <b>círculo del lado izquierdo</b> de la opción correcta para marcarla (se pondrá verde). ¡Ahora puedes añadir múltiples preguntas!
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-10">
+                                                        {stages[activeStageIndex].interactiveConfig.questions?.map((q: any, qi: number) => (
+                                                            <div key={q.id} className="space-y-6 p-6 bg-white/[0.02] border border-white/5 rounded-[32px] relative group/q">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                        config.questions.splice(qi, 1);
+                                                                        updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                    }}
+                                                                    className="absolute -top-3 -right-3 w-8 h-8 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/q:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+
+                                                                <div className="space-y-4">
+                                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                                        <span className="w-5 h-5 bg-blue-600/20 text-blue-400 rounded-lg flex items-center justify-center text-[9px]">{qi + 1}</span>
+                                                                        Pregunta del Reto
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="¿Cuál de estos es un recurso renovable?"
+                                                                        value={q.question}
+                                                                        onChange={(e) => {
+                                                                            const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                            config.questions[qi].question = e.target.value;
+                                                                            updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                        }}
+                                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-700"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="space-y-4">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Opciones de Respuesta</label>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                if (!config.questions[qi].options) config.questions[qi].options = [];
+                                                                                config.questions[qi].options.push({ id: crypto.randomUUID(), text: '', isCorrect: false });
+                                                                                updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                            }}
+                                                                            className="text-blue-400 hover:text-blue-300 flex items-center gap-1.5 font-black text-[10px] uppercase tracking-widest"
+                                                                        >
+                                                                            <PlusCircle className="w-3.5 h-3.5" /> Añadir Opción
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="space-y-3">
+                                                                        {q.options?.map((opt: any, oi: number) => (
+                                                                            <div key={opt.id} className="flex items-center gap-3 bg-white/[0.02] p-4 rounded-2xl border border-white/5 group">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                        config.questions[qi].options.forEach((o: any, i: number) => {
+                                                                                            if (i === oi) o.isCorrect = !o.isCorrect;
+                                                                                            else o.isCorrect = false;
+                                                                                        });
+                                                                                        updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                                    }}
+                                                                                    className={clsx(
+                                                                                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-2",
+                                                                                        opt.isCorrect ? "bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/40" : "bg-white/5 border-white/10 text-slate-700 hover:border-white/30"
+                                                                                    )}
+                                                                                    title={opt.isCorrect ? "Respuesta Correcta" : "Marcar como Correcta"}
+                                                                                >
+                                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                                </button>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    placeholder="Opción..."
+                                                                                    value={opt.text}
+                                                                                    onChange={(e) => {
+                                                                                        const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                        config.questions[qi].options[oi].text = e.target.value;
+                                                                                        updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                                    }}
+                                                                                    className="flex-1 bg-transparent border-none text-white text-sm font-bold focus:outline-none transition-all placeholder:text-slate-700"
+                                                                                />
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                        config.questions[qi].options.splice(oi, 1);
+                                                                                        updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                                    }}
+                                                                                    className="p-2 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+
+                                                        <button
+                                                            onClick={() => {
+                                                                const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                if (!config.questions) config.questions = [];
+                                                                config.questions.push({
+                                                                    id: crypto.randomUUID(),
+                                                                    question: '',
+                                                                    options: [
+                                                                        { id: crypto.randomUUID(), text: '', isCorrect: true },
+                                                                        { id: crypto.randomUUID(), text: '', isCorrect: false }
+                                                                    ]
+                                                                });
+                                                                updateStage(activeStageIndex, { interactiveConfig: config });
+                                                            }}
+                                                            className="w-full py-6 border-2 border-dashed border-white/5 rounded-[32px] text-slate-500 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex flex-col items-center gap-2 group"
+                                                        >
+                                                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-500/10 transition-all">
+                                                                <Plus className="w-5 h-5" />
+                                                            </div>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Añadir otra pregunta al cuestionario</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
                                             {/* Specialized Editor: Classification */}
                                             {stages[activeStageIndex].challengeType === 'classification' && (
                                                 <div className="space-y-6 pt-6 border-t border-white/5">
+                                                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-4 items-start">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                                            <Info className="w-4 h-4 text-blue-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Guía de Configuración: Clasificación</h4>
+                                                            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                                                                1. Crea los <b>Contenedores</b> (categorías) donde se agruparán los elementos. <br />
+                                                                2. Añade los <b>Items</b> y asígnales el contenedor correcto. El alumno deberá arrastrarlos a su lugar.
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                     <div className="space-y-4">
                                                         <div className="flex items-center justify-between">
                                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Contenedores (Categorías)</label>
@@ -663,6 +1024,17 @@ export default function ThemeBuilderPage() {
                                             {/* Specialized Editor: Matching */}
                                             {stages[activeStageIndex].challengeType === 'matching' && (
                                                 <div className="space-y-6 pt-6 border-t border-white/5">
+                                                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-4 items-start">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                                            <Info className="w-4 h-4 text-blue-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Guía de Configuración: Relación</h4>
+                                                            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                                                                Define pares de conceptos. El alumno tendrá que conectar cada elemento de la izquierda con su correspondiente pareja a la derecha. Asegúrate de que cada par tenga sentido.
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                     <div className="space-y-4">
                                                         <div className="flex items-center justify-between">
                                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Pares de Elementos</label>
@@ -726,6 +1098,99 @@ export default function ThemeBuilderPage() {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {/* Specialized Editor: Ordering */}
+                                            {stages[activeStageIndex].challengeType === 'ordering' && (
+                                                <div className="space-y-6 pt-6 border-t border-white/5">
+                                                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 flex gap-4 items-start">
+                                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                                            <Info className="w-4 h-4 text-blue-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Guía de Configuración: Ordenamiento</h4>
+                                                            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                                                                Añade los elementos en el <b>orden exacto</b> que el alumno debe lograr. El sistema los mezclará automáticamente al iniciar el reto. Usa las flechas para ajustar el orden.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Elementos en Orden</label>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                    if (!config.items) config.items = [];
+                                                                    config.items.push({ id: crypto.randomUUID(), text: '' });
+                                                                    updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                }}
+                                                                className="text-blue-400 hover:text-blue-300 flex items-center gap-1.5 font-black text-[10px] uppercase tracking-widest"
+                                                            >
+                                                                <PlusCircle className="w-3.5 h-3.5" /> Añadir Elemento
+                                                            </button>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {stages[activeStageIndex].interactiveConfig.items?.map((item: any, ii: number) => (
+                                                                <div key={item.id} className="flex items-center gap-4 bg-white/[0.02] p-5 border border-white/5 rounded-2xl group">
+                                                                    <div className="w-8 h-8 bg-blue-600/10 rounded-lg flex items-center justify-center text-blue-500 font-black text-xs">
+                                                                        {ii + 1}
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="Ej: Paso 1: Evaporación"
+                                                                        value={item.text}
+                                                                        onChange={(e) => {
+                                                                            const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                            config.items[ii].text = e.target.value;
+                                                                            updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                        }}
+                                                                        className="flex-1 bg-transparent border-none text-white text-sm font-bold focus:outline-none transition-all placeholder:text-slate-700"
+                                                                    />
+                                                                    <div className="flex items-center gap-1">
+                                                                        <button
+                                                                            disabled={ii === 0}
+                                                                            onClick={() => {
+                                                                                const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                const temp = config.items[ii];
+                                                                                config.items[ii] = config.items[ii - 1];
+                                                                                config.items[ii - 1] = temp;
+                                                                                updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                            }}
+                                                                            className="p-1.5 text-slate-600 hover:text-white disabled:opacity-20 transition-colors"
+                                                                        >
+                                                                            <ChevronLeft className="w-4 h-4 rotate-90" />
+                                                                        </button>
+                                                                        <button
+                                                                            disabled={ii === stages[activeStageIndex].interactiveConfig.items.length - 1}
+                                                                            onClick={() => {
+                                                                                const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                                const temp = config.items[ii];
+                                                                                config.items[ii] = config.items[ii + 1];
+                                                                                config.items[ii + 1] = temp;
+                                                                                updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                            }}
+                                                                            className="p-1.5 text-slate-600 hover:text-white disabled:opacity-20 transition-colors"
+                                                                        >
+                                                                            <ChevronRight className="w-4 h-4 rotate-90" />
+                                                                        </button>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const config = { ...stages[activeStageIndex].interactiveConfig };
+                                                                            config.items.splice(ii, 1);
+                                                                            updateStage(activeStageIndex, { interactiveConfig: config });
+                                                                        }}
+                                                                        className="ml-2 p-2 text-red-500/30 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -741,7 +1206,7 @@ export default function ThemeBuilderPage() {
 
                                     {activeStageIndex < stages.length - 1 ? (
                                         <button
-                                            onClick={() => setActiveStageIndex(activeStageIndex + 1)}
+                                            onClick={goToNextStage}
                                             className="bg-white text-black px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                                         >
                                             Siguiente Etapa

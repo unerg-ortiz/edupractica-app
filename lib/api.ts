@@ -156,6 +156,19 @@ export const topics = {
             method: 'POST',
             body: JSON.stringify(data),
         }),
+
+    /** Update a topic */
+    update: (topicId: number, data: any) =>
+        apiFetch(`/api/topics/${topicId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    /** Delete a topic */
+    delete: (topicId: number) =>
+        apiFetch(`/api/topics/${topicId}`, {
+            method: 'DELETE',
+        }),
 };
 
 // ── Categories ───────────────────────────

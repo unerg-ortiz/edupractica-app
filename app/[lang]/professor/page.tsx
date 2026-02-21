@@ -265,7 +265,7 @@ export default function ProfessorDashboard() {
                                         </h3>
                                         <p className="text-slate-400 font-bold text-xs lg:text-sm flex items-center gap-2">
                                             <span className="w-1 h-1 rounded-full bg-blue-500/50" />
-                                            {categoryMap[topic.category_id] || `Categoría ${topic.category_id}`} • <span className="text-slate-500">{topic.level || 'Secundaria'}</span>
+                                            {categoryMap[topic.category_id] || `Categoría ${topic.category_id}`}
                                         </p>
                                     </div>
                                     <div className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center border border-white/5 shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6", bg)}>
