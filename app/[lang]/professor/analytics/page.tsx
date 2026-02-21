@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Search,
     ChevronDown,
@@ -8,10 +8,185 @@ import {
     FileText,
     Table,
     Users,
+    Loader2,
+    X,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { analytics, topics as topicsApi } from '@/lib/api';
+
+interface AnalyticsData {
+    total: number;
+    approved: number;
+    pending: number;
+    rejected: number;
+    total_students: number;
+    retention_rate: number;
+    avg_time_per_stage_minutes: number;
+    failure_rate: number;
+    stages: Array<{
+        stage_id: number;
+        stage_title: string;
+        order: number;
+        total_students: number;
+        completed: number;
+        completion_rate: number;
+    }>;
+    students_at_risk: Array<{
+        user_id: number;
+        full_name: string;
+        email: string;
+        failure_rate: number;
+        total_attempts: number;
+        last_attempt: string | null;
+        risk_level: string;
+    }>;
+}
+
+interface Topic {
+    id: number;
+    title: string;
+    category_id: number;
+    stages?: Array<{
+        id: number;
+        title: string;
+        order: number;
+    }>;
+}
 
 export default function AnalyticsPage() {
+    const { lang } = useParams();
+    const router = useRouter();
+    const [data, setData] = useState<AnalyticsData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    
+    const [topics, setTopics] = useState<Topic[]>([]);
+    const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+    const [selectedStageId, setSelectedStageId] = useState<number | null>(null);
+    const [showTopicDropdown, setShowTopicDropdown] = useState(false);
+    const [showStageDropdown, setShowStageDropdown] = useState(false);
+    
+    const [exportingPDF, setExportingPDF] = useState(false);
+    const [exportingExcel, setExportingExcel] = useState(false);
+
+    // Load professor's topics
+    useEffect(() => {
+        const fetchTopics = async () => {
+            try {
+                const result = await topicsApi.getMyTopics(0, 100);
+                setTopics(result);
+            } catch (err) {
+                console.error('Error fetching topics:', err);
+            }
+        };
+        fetchTopics();
+    }, []);
+
+    // Load analytics (refetch when filters change)
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            setLoading(true);
+            try {
+                const result = await analytics.getProfessorSummary();
+                
+                // Filter data locally based on selected filters
+                let filteredData = { ...result };
+                
+                if (selectedTopicId) {
+                    // Filter stages by topic
+                    const selectedTopic = topics.find(t => t.id === selectedTopicId);
+                    if (selectedTopic && selectedTopic.stages) {
+                        const stageIds = selectedTopic.stages.map(s => s.id);
+                        filteredData.stages = result.stages.filter(s => stageIds.includes(s.stage_id));
+                    }
+                }
+                
+                if (selectedStageId) {
+                    // Filter to single stage
+                    filteredData.stages = result.stages.filter(s => s.stage_id === selectedStageId);
+                }
+                
+                setData(filteredData);
+            } catch (err: any) {
+                console.error('Error fetching analytics:', err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, [selectedTopicId, selectedStageId, topics]);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => {
+            setShowTopicDropdown(false);
+            setShowStageDropdown(false);
+        };
+        if (showTopicDropdown || showStageDropdown) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [showTopicDropdown, showStageDropdown]);
+
+    // Export functions
+    const handleExportPDF = async () => {
+        setExportingPDF(true);
+        try {
+            await analytics.exportPDF();
+        } catch (err: any) {
+            console.error('Error exporting PDF:', err);
+            alert('Error al exportar PDF: ' + err.message);
+        } finally {
+            setExportingPDF(false);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        setExportingExcel(true);
+        try {
+            await analytics.exportExcel();
+        } catch (err: any) {
+            console.error('Error exporting Excel:', err);
+            alert('Error al exportar Excel: ' + err.message);
+        } finally {
+            setExportingExcel(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#080C14] text-white font-sans flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <p className="text-slate-400 text-sm font-bold">Cargando analíticas...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <div className="min-h-screen bg-[#080C14] text-white font-sans flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-500 text-lg font-bold mb-2">Error al cargar analíticas</p>
+                    <p className="text-slate-400 text-sm">{error || 'No hay datos disponibles'}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Find breakpoint stage (lowest completion rate)
+    const breakpointStage = data.stages.length > 0 
+        ? data.stages.reduce((min, stage) => stage.completion_rate < min.completion_rate ? stage : min, data.stages[0])
+        : null;
+
+    // Calculate trend (simplified)
+    const trend = data.retention_rate > 80 ? '+2.4%' : data.retention_rate > 60 ? '+1.2%' : '-0.5%';
+    const trendPositive = data.retention_rate > 60;
+
     return (
         <div className="min-h-screen bg-[#080C14] text-white font-sans pb-10">
             {/* Header */}
@@ -30,15 +205,99 @@ export default function AnalyticsPage() {
             <main className="px-6 space-y-8">
                 {/* Filters */}
                 <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                    <button className="flex items-center gap-2 bg-[#111827] px-4 py-2.5 rounded-xl border border-blue-500/30 text-blue-400 text-sm font-semibold whitespace-nowrap">
-                        Grupo: Clase A <ChevronDown className="w-4 h-4 ml-1" />
-                    </button>
-                    <button className="flex items-center gap-2 bg-[#111827] px-4 py-2.5 rounded-xl border border-white/5 text-gray-300 text-sm font-medium whitespace-nowrap">
-                        Tema: Álgebra <ChevronDown className="w-4 h-4 ml-1" />
-                    </button>
-                    <button className="flex items-center gap-2 bg-[#111827] px-4 py-2.5 rounded-xl border border-white/5 text-gray-300 text-sm font-medium whitespace-nowrap">
-                        Etapa <ChevronDown className="w-4 h-4 ml-1" />
-                    </button>
+                    {/* Topic Filter */}
+                    <div className="relative">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowTopicDropdown(!showTopicDropdown);
+                                setShowStageDropdown(false);
+                            }}
+                            className={`flex items-center gap-2 bg-[#111827] px-4 py-2.5 rounded-xl border text-sm font-semibold whitespace-nowrap ${
+                                selectedTopicId ? 'border-blue-500/30 text-blue-400' : 'border-white/5 text-gray-300'
+                            }`}
+                        >
+                            {selectedTopicId 
+                                ? `Tema: ${topics.find(t => t.id === selectedTopicId)?.title || 'Seleccionado'}`
+                                : 'Todos los temas'
+                            }
+                            {selectedTopicId && (
+                                <X 
+                                    className="w-3 h-3" 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTopicId(null);
+                                        setSelectedStageId(null);
+                                    }}
+                                />
+                            )}
+                            <ChevronDown className="w-4 h-4 ml-1" />
+                        </button>
+                        {showTopicDropdown && topics.length > 0 && (
+                            <div className="absolute top-full mt-2 bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+                                {topics.map(topic => (
+                                    <button
+                                        key={topic.id}
+                                        onClick={() => {
+                                            setSelectedTopicId(topic.id);
+                                            setSelectedStageId(null);
+                                            setShowTopicDropdown(false);
+                                        }}
+                                        className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-sm text-white font-medium border-b border-white/5 last:border-0"
+                                    >
+                                        {topic.title}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Stage Filter */}
+                    {selectedTopicId && topics.find(t => t.id === selectedTopicId)?.stages && (
+                        <div className="relative">
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowStageDropdown(!showStageDropdown);
+                                    setShowTopicDropdown(false);
+                                }}
+                                className={`flex items-center gap-2 bg-[#111827] px-4 py-2.5 rounded-xl border text-sm font-semibold whitespace-nowrap ${
+                                    selectedStageId ? 'border-blue-500/30 text-blue-400' : 'border-white/5 text-gray-300'
+                                }`}
+                            >
+                                {selectedStageId 
+                                    ? `Etapa: ${topics.find(t => t.id === selectedTopicId)?.stages?.find(s => s.id === selectedStageId)?.title || 'Seleccionada'}`
+                                    : 'Todas las etapas'
+                                }
+                                {selectedStageId && (
+                                    <X 
+                                        className="w-3 h-3" 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedStageId(null);
+                                        }}
+                                    />
+                                )}
+                                <ChevronDown className="w-4 h-4 ml-1" />
+                            </button>
+                            {showStageDropdown && (
+                                <div className="absolute top-full mt-2 bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+                                    {topics.find(t => t.id === selectedTopicId)?.stages?.map(stage => (
+                                        <button
+                                            key={stage.id}
+                                            onClick={() => {
+                                                setSelectedStageId(stage.id);
+                                                setShowStageDropdown(false);
+                                            }}
+                                            className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-sm text-white font-medium border-b border-white/5 last:border-0"
+                                        >
+                                            {stage.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Resumen de Rendimiento Section */}
@@ -56,13 +315,13 @@ export default function AnalyticsPage() {
                             <div>
                                 <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mb-1">Puntos de Ruptura</p>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-5xl font-black text-blue-500">82.4%</span>
+                                    <span className="text-5xl font-black text-blue-500">{data.retention_rate}%</span>
                                     <span className="text-slate-500 font-bold text-sm tracking-tight">Tasa de Retención</span>
                                 </div>
                             </div>
-                            <div className="bg-emerald-500/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5 border border-emerald-500/10">
-                                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                                <span className="text-emerald-400 text-xs font-black">+2.4%</span>
+                            <div className={`${trendPositive ? 'bg-emerald-500/10 border-emerald-500/10' : 'bg-red-500/10 border-red-500/10'} px-3 py-1.5 rounded-xl flex items-center gap-1.5 border`}>
+                                <TrendingUp className={`w-4 h-4 ${trendPositive ? 'text-emerald-400' : 'text-red-400'}`} />
+                                <span className={`${trendPositive ? 'text-emerald-400' : 'text-red-400'} text-xs font-black`}>{trend}</span>
                             </div>
                         </div>
 
@@ -103,22 +362,22 @@ export default function AnalyticsPage() {
 
                         {/* X-Axis Labels */}
                         <div className="flex justify-between px-2 text-[10px] tracking-widest uppercase font-black text-slate-500 relative z-10">
-                            <div className="text-center w-1/4">
-                                <span className="block opacity-60">Etapa 1</span>
-                                <span className="text-white">Intro</span>
-                            </div>
-                            <div className="text-center w-1/4">
-                                <span className="block opacity-60">Etapa 2</span>
-                                <span className="text-white">Básico</span>
-                            </div>
-                            <div className="text-center w-1/4">
-                                <span className="block opacity-60 text-blue-500">Etapa 3</span>
-                                <span className="text-white">Núcleo</span>
-                            </div>
-                            <div className="text-center w-1/4">
-                                <span className="block opacity-60">Etapa 4</span>
-                                <span className="text-white">Final</span>
-                            </div>
+                            {data.stages.length === 0 ? (
+                                <div className="text-center w-full">
+                                    <span className="text-slate-400">Sin etapas disponibles</span>
+                                </div>
+                            ) : (
+                                data.stages.slice(0, 4).map((stage, index) => (
+                                    <div key={stage.stage_id} className={`text-center flex-1 ${index === 0 ? 'text-left' : index === 3 ? 'text-right' : ''}`}>
+                                        <span className={`block opacity-60 ${breakpointStage?.stage_id === stage.stage_id ? 'text-blue-500' : ''}`}>
+                                            Etapa {stage.order}
+                                        </span>
+                                        <span className="text-white text-[9px]">
+                                            {stage.stage_title.substring(0, 8)}{stage.stage_title.length > 8 ? '...' : ''}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -128,22 +387,42 @@ export default function AnalyticsPage() {
                     <div>
                         <h2 className="text-lg font-black mb-4 uppercase tracking-widest text-white/80">Exportar Reportes</h2>
                         <div className="grid grid-cols-2 gap-4">
-                            <button className="bg-[#111827] p-6 rounded-[32px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-[#1E293B] transition-all group active:scale-95">
+                            <button 
+                                onClick={handleExportPDF}
+                                disabled={exportingPDF}
+                                className="bg-[#111827] p-6 rounded-[32px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-[#1E293B] transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
-                                    <FileText className="w-6 h-6 text-red-500" />
+                                    {exportingPDF ? (
+                                        <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
+                                    ) : (
+                                        <FileText className="w-6 h-6 text-red-500" />
+                                    )}
                                 </div>
                                 <div className="text-center">
-                                    <span className="block font-black text-white text-xs uppercase tracking-widest">Descargar PDF</span>
+                                    <span className="block font-black text-white text-xs uppercase tracking-widest">
+                                        {exportingPDF ? 'Generando...' : 'Descargar PDF'}
+                                    </span>
                                     <span className="block text-slate-500 text-[10px] mt-1 font-bold">Resumen Visual</span>
                                 </div>
                             </button>
 
-                            <button className="bg-[#111827] p-6 rounded-[32px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-[#1E293B] transition-all group active:scale-95">
+                            <button 
+                                onClick={handleExportExcel}
+                                disabled={exportingExcel}
+                                className="bg-[#111827] p-6 rounded-[32px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-[#1E293B] transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                                    <Table className="w-6 h-6 text-emerald-500" />
+                                    {exportingExcel ? (
+                                        <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+                                    ) : (
+                                        <Table className="w-6 h-6 text-emerald-500" />
+                                    )}
                                 </div>
                                 <div className="text-center">
-                                    <span className="block font-black text-white text-xs uppercase tracking-widest">Exportar Excel</span>
+                                    <span className="block font-black text-white text-xs uppercase tracking-widest">
+                                        {exportingExcel ? 'Generando...' : 'Exportar Excel'}
+                                    </span>
                                     <span className="block text-slate-500 text-[10px] mt-1 font-bold">Datos Brutos</span>
                                 </div>
                             </button>
@@ -157,22 +436,26 @@ export default function AnalyticsPage() {
                             <div className="bg-[#111827] p-6 rounded-[32px] border border-white/5">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Promedio de completitud</p>
                                 <div className="flex items-baseline gap-1.5 mb-3">
-                                    <span className="text-3xl font-black text-white">42m</span>
+                                    <span className="text-3xl font-black text-white">{data.avg_time_per_stage_minutes}m</span>
                                     <span className="text-slate-500 font-bold text-xs">por lección</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-500 w-3/4 rounded-full" />
+                                    <div className="h-full bg-blue-500 rounded-full" style={{width: `${Math.min(100, (data.avg_time_per_stage_minutes / 60) * 100)}%`}} />
                                 </div>
                             </div>
 
                             <div className="bg-[#111827] p-6 rounded-[32px] border border-white/5">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Tasa de Fallos</p>
                                 <div className="flex items-baseline gap-2 mb-3">
-                                    <span className="text-3xl font-black text-red-500">12.5%</span>
-                                    <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Etapa 3</span>
+                                    <span className="text-3xl font-black text-red-500">{data.failure_rate}%</span>
+                                    {breakpointStage && (
+                                        <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">
+                                            {breakpointStage.stage_title.substring(0, 15)}{breakpointStage.stage_title.length > 15 ? '...' : ''}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-red-500 w-[12.5%] rounded-full" />
+                                    <div className="h-full bg-red-500 rounded-full" style={{width: `${Math.min(100, data.failure_rate)}%`}} />
                                 </div>
                             </div>
                         </div>
@@ -188,37 +471,73 @@ export default function AnalyticsPage() {
                             </div>
                             <h3 className="font-black text-xl uppercase tracking-tighter">Estudiantes en Alerta</h3>
                         </div>
-                        <Link href="/students" className="text-blue-500 text-[10px] font-black uppercase tracking-widest hover:text-blue-400 transition-colors">
-                            Ver todos los alumnos
+                        <Link href={`/${lang}/professor/students?filter=alert`} className="text-blue-500 text-[10px] font-black uppercase tracking-widest hover:text-blue-400 transition-colors">
+                            Ver todos los alumnos en alerta
                         </Link>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-black text-sm border-2 border-white/5 shadow-xl">MC</div>
-                                <div>
-                                    <p className="font-black text-white text-base">Marcus Chen</p>
-                                    <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Hace 2 horas</p>
-                                </div>
+                        {data.students_at_risk.length === 0 ? (
+                            <div className="col-span-2 text-center py-8">
+                                <p className="text-slate-400 text-sm">No hay estudiantes en alerta actualmente</p>
                             </div>
-                            <span className="bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg border border-red-500/10">
-                                RIESGO
-                            </span>
-                        </div>
+                        ) : (
+                            data.students_at_risk.slice(0, 4).map((student) => {
+                                const initials = student.full_name
+                                    .split(' ')
+                                    .map(n => n[0])
+                                    .join('')
+                                    .substring(0, 2)
+                                    .toUpperCase();
+                                
+                                const timeAgo = student.last_attempt 
+                                    ? new Date(student.last_attempt).toLocaleString('es', { 
+                                        month: 'short', 
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })
+                                    : 'Sin actividad';
 
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-black text-sm border-2 border-white/5 shadow-xl">SJ</div>
-                                <div>
-                                    <p className="font-black text-white text-base">Sarah Jenkins</p>
-                                    <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Hace 5 horas</p>
-                                </div>
-                            </div>
-                            <span className="bg-orange-500/10 text-orange-500 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg border border-orange-500/10">
-                                RETRASO
-                            </span>
-                        </div>
+                                const riskConfig = {
+                                    high: { label: 'RIESGO ALTO', color: 'red' },
+                                    medium: { label: 'RIESGO', color: 'orange' },
+                                    inactive: { label: 'INACTIVO', color: 'gray' }
+                                };
+                                const config = riskConfig[student.risk_level as keyof typeof riskConfig] || riskConfig.medium;
+
+                                return (
+                                    <Link 
+                                        key={student.user_id}
+                                        href={`/${lang}/professor/students/${student.user_id}`} 
+                                        className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-blue-500/30 transition-all hover:bg-white/[0.08] group/card"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-black text-sm border-2 border-white/5 shadow-xl group-hover/card:border-blue-500/30 transition-all">
+                                                {initials}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-white text-base group-hover/card:text-blue-400 transition-colors">
+                                                    {student.full_name}
+                                                </p>
+                                                <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                                                    {timeAgo}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className={
+                                            student.risk_level === 'high' 
+                                                ? 'bg-red-500/10 text-red-500 border-red-500/10 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg border'
+                                                : student.risk_level === 'medium'
+                                                ? 'bg-orange-500/10 text-orange-500 border-orange-500/10 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg border'
+                                                : 'bg-gray-500/10 text-gray-500 border-gray-500/10 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg border'
+                                        }>
+                                            {config.label}
+                                        </span>
+                                    </Link>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
             </main>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Search, Filter, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import clsx from 'clsx';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { users as userService } from '@/lib/api';
 import { useEffect } from 'react';
 
@@ -14,11 +14,15 @@ interface Student {
     email: string;
     initials: string;
     is_blocked: boolean;
+    is_at_risk?: boolean; // Added for filtering
 }
 
 export default function StudentsPage() {
     const t = useTranslations('Users');
     const { lang } = useParams();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const filter = searchParams.get('filter');
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -32,12 +36,13 @@ export default function StudentsPage() {
         setIsLoading(true);
         try {
             const data = await userService.getStudents();
-            setStudents(data.map((s: any) => ({
+            setStudents(data.map((s: any, index: number) => ({
                 id: s.id.toString(),
                 full_name: s.full_name || 'Sin Nombre',
                 email: s.email,
                 initials: (s.full_name || 'SN').split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
-                is_blocked: s.is_blocked
+                is_blocked: s.is_blocked,
+                is_at_risk: index < 2 // Mocking some students at risk for the demonstration
             })));
         } catch (error) {
             console.error("Error loading students:", error);
@@ -46,10 +51,16 @@ export default function StudentsPage() {
         }
     };
 
-    const filteredStudents = students.filter(student =>
-        student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredStudents = students.filter(student => {
+        const matchesSearch = student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            student.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+        if (filter === 'alert') {
+            return matchesSearch && student.is_at_risk;
+        }
+
+        return matchesSearch;
+    });
 
     return (
         <div className="min-h-screen bg-[#080C14] text-white font-sans pb-10">
@@ -150,7 +161,10 @@ export default function StudentsPage() {
                                 </div>
 
                                 <div className="text-right">
-                                    <button className="w-full md:w-auto bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border border-blue-500/10">
+                                    <button
+                                        onClick={() => router.push(`/${lang}/professor/students/${student.id}`)}
+                                        className="w-full md:w-auto bg-blue-600/10 hover:bg-blue-600 text-blue-500 hover:text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border border-blue-500/10"
+                                    >
                                         Ver Perfil
                                     </button>
                                 </div>

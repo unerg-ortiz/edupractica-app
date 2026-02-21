@@ -88,6 +88,42 @@ export const contentReview = {
 export const analytics = {
     getDashboard: () => apiFetch('/api/analytics/dashboard'),
     getProfessorSummary: () => apiFetch('/api/analytics/professor/summary'),
+    exportExcel: async () => {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const response = await fetch(`${API_URL}/api/analytics/export/excel`, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            },
+        });
+        if (!response.ok) throw new Error('Error al exportar Excel');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    },
+    exportPDF: async () => {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const response = await fetch(`${API_URL}/api/analytics/export/pdf`, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            },
+        });
+        if (!response.ok) throw new Error('Error al exportar PDF');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    },
 };
 
 // ── Stages ───────────────────────────────

@@ -6,7 +6,10 @@ import { usePathname, useParams, useRouter } from 'next/navigation';
 import { Home, Trophy, User, LogOut, Menu, X } from 'lucide-react';
 import clsx from 'clsx';
 
+import { useTranslations } from 'next-intl';
+
 export default function StudentHeader() {
+    const t = useTranslations('Professor.nav'); // Reusing nav translations or could use specific student ones
     const pathname = usePathname();
     const { lang } = useParams();
     const router = useRouter();
