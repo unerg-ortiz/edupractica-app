@@ -14,7 +14,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const { lang } = useParams();
 
-    const [role, setRole] = useState<Role>("admin");
+    const [role, setRole] = useState<Role>("student");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -90,7 +90,7 @@ export default function RegisterPage() {
 
                     {/* Role Selector */}
                     <div className="bg-[#0B1120] p-1.5 rounded-2xl flex gap-1 mb-8">
-                        {(["student", "professor", "admin"] as const).map((r) => (
+                        {(["student", "professor"] as const).map((r) => (
                             <button
                                 key={r}
                                 onClick={() => setRole(r)}
