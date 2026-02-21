@@ -114,6 +114,13 @@
     "Profile": {
         "title": "Privacidad y Seguridad",
         "configuration": "CONFIGURACIÓN DE CUENTA",
+        "fullNameLabel": "Nombre Completo",
+        "emailLabel": "Correo Electrónico",
+        "passwordLabel": "Nueva Contraseña (opcional)",
+        "confirmPasswordLabel": "Confirmar Nueva Contraseña",
+        "updateButton": "Guardar Cambios",
+        "updateSuccess": "Perfil actualizado correctamente",
+        "passwordsDontMatch": "Las contraseñas no coinciden",
         "notifications": "NOTIFICACIONES",
         "dangerZone": {
             "title": "ZONA DE PELIGRO",

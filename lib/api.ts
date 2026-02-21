@@ -52,6 +52,13 @@ export const auth = {
 export const users = {
     getStudents: (skip = 0, limit = 100) =>
         apiFetch(`/users/students?skip=${skip}&limit=${limit}`),
+    getMe: () => apiFetch('/users/me'),
+    updateMe: (data: { email?: string; full_name?: string; password?: string }) =>
+        apiFetch('/users/me', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+    deleteMe: () => apiFetch('/users/me', { method: 'DELETE' }),
 };
 
 // ── Content Review (Admin) ───────────────
