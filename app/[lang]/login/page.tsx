@@ -73,6 +73,17 @@ export default function LoginPage() {
                 </Link>
             </div>
 
+            {/* Logo with BETA badge */}
+            <div className="flex justify-center items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
+                    <span className="text-white font-black text-xl">E</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-white font-black text-2xl tracking-tight">EduPráctica</span>
+                    <span className="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-md shadow-lg shadow-orange-500/30">BETA</span>
+                </div>
+            </div>
+
             <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
                 {/* Header */}
                 <div className="text-center mb-10">

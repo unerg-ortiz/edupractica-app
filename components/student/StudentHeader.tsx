@@ -46,7 +46,10 @@ export default function StudentHeader() {
                         <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 transition-transform group-hover:scale-105">
                             <span className="text-white font-black text-xl">E</span>
                         </div>
-                        <span className="text-white font-black text-2xl tracking-tight hidden sm:block">EduPráctica</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-white font-black text-2xl tracking-tight hidden sm:block">EduPráctica</span>
+                            <span className="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-md shadow-lg shadow-orange-500/30 hidden sm:block">BETA</span>
+                        </div>
                     </Link>
 
                     {/* Desktop Navigation */}

@@ -55,24 +55,31 @@ export default function ContentReviewPage() {
         setError(null);
         try {
             const stageId = Number(id);
+            console.log('Loading topic details for ID:', stageId);
             if (isNaN(stageId)) throw new Error("Invalid ID");
 
             const data = await contentReview.getTopic(stageId);
+            console.log('Topic data received:', data);
             setTopic(data);
             if (data.stages && data.stages.length > 0) {
+                console.log('Setting selected stage to first stage:', data.stages[0]);
                 setSelectedStage(data.stages[0]);
+            } else {
+                console.warn('No stages found in topic');
             }
 
             // Fetch category name
             if (data.category_id) {
                 try {
                     const cat = await categoriesApi.get(data.category_id);
+                    console.log('Category loaded:', cat);
                     setCategoryName(cat.name);
                 } catch (e) {
                     console.error("Error fetching category", e);
                 }
             }
         } catch (err: any) {
+            console.error('Error loading topic details:', err);
             setError(err.message || 'Error loading content');
         } finally {
             setIsLoading(false);
@@ -83,10 +90,13 @@ export default function ContentReviewPage() {
         if (!topic) return;
         setIsSubmitting(true);
         try {
+            console.log('Submitting review:', { topicId: topic.id, approved, notes: adminNotes });
             await contentReview.review(topic.id, approved, adminNotes);
+            console.log('Review submitted successfully');
             // Redirect back to dashboard on success
             router.push(`/${lang}/admin/content-review`);
         } catch (err: any) {
+            console.error('Error submitting review:', err);
             alert(`Error: ${err.message}`);
             setIsSubmitting(false);
         }
@@ -101,6 +111,16 @@ export default function ContentReviewPage() {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // Placeholder thumbnails based on category (same as listing page)
+    const getThumbnail = (categoryId: number) => {
+        const thumbnails: Record<number, string> = {
+            1: "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1964&auto=format&fit=crop",
+            2: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&auto=format&fit=crop",
+            3: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=2121&auto=format&fit=crop",
+        };
+        return thumbnails[categoryId] || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop";
     };
 
     if (isLoading) {
@@ -169,15 +189,22 @@ export default function ContentReviewPage() {
                     <div className="lg:col-span-7 space-y-10">
                         {/* Video Player / Media Preview */}
                         <div className="relative aspect-video rounded-[32px] overflow-hidden bg-slate-900 shadow-2xl group border border-white/10">
-                            {selectedStage?.media_url ? (
+                            {selectedStage?.media_url || topic?.category_id ? (
                                 <>
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                                        <p className="text-slate-400 text-sm font-medium">Vista previa de medio: {selectedStage.media_type}</p>
+                                        <p className="text-slate-400 text-sm font-medium">Vista previa de medio: {selectedStage?.media_type || 'Imagen'}</p>
                                     </div>
                                     <img
-                                        src={selectedStage.media_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?q=80&w=1964&auto=format&fit=crop"}
+                                        src={selectedStage?.media_url || getThumbnail(topic?.category_id || 0)}
                                         alt="Thumbnail"
                                         className="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-700"
+                                        onError={(e) => {
+                                            // If image fails to load, use category thumbnail
+                                            const imgElement = e.currentTarget;
+                                            if (imgElement.src !== getThumbnail(topic?.category_id || 0)) {
+                                                imgElement.src = getThumbnail(topic?.category_id || 0);
+                                            }
+                                        }}
                                     />
                                     {/* Play Button Mock */}
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -215,7 +242,9 @@ export default function ContentReviewPage() {
                                     <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
                                         <User className="w-4 h-4 text-blue-500" />
                                     </div>
-                                    <span className="text-sm font-bold text-slate-300">Profesor #{topic.professor_id || '?'}</span>
+                                    <span className="text-sm font-bold text-slate-300">
+                                        {topic.professor_name || `Profesor #${topic.professor_id || '?'}`}
+                                    </span>
                                 </div>
                                 <div className="bg-[#111827] border border-white/5 px-5 py-3 rounded-2xl flex items-center gap-3 hover:bg-[#1F2937] transition-colors cursor-default">
                                     <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
@@ -246,11 +275,12 @@ export default function ContentReviewPage() {
                                     <div className="w-1.5 h-8 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.3)]" />
                                     <h3 className="text-2xl font-black tracking-tight text-white/95">Etapas del Tema</h3>
                                 </div>
-                                <span className="text-slate-500 text-sm font-bold">{topic.stages.length} etapas registradas</span>
+                                <span className="text-slate-500 text-sm font-bold">{topic.stages?.length || 0} etapas registradas</span>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {topic.stages.map((st: any) => (
+                            {topic.stages && topic.stages.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-4">
+                                    {topic.stages.map((st: any) => (
                                     <button
                                         key={st.id}
                                         onClick={() => setSelectedStage(st)}
@@ -283,8 +313,17 @@ export default function ContentReviewPage() {
                                             selectedStage?.id === st.id ? "text-blue-500" : "text-slate-700"
                                         )} />
                                     </button>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-[#111827] border border-yellow-500/20 rounded-3xl p-8 text-center">
+                                    <div className="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <AlertTriangle className="w-8 h-8 text-yellow-500" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-yellow-400 mb-2">Sin Etapas Registradas</h4>
+                                    <p className="text-slate-400 text-sm">Este tema no tiene etapas asociadas todavía.</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Selected Stage Content */}
@@ -296,11 +335,18 @@ export default function ContentReviewPage() {
                                         Contenido: {selectedStage.title}
                                     </h3>
                                 </div>
-                                <div className="bg-[#111827] p-10 rounded-[40px] border border-white/5 text-slate-300 leading-relaxed text-lg font-medium whitespace-pre-wrap shadow-inner relative overflow-hidden">
+                                <div className="bg-[#111827] p-10 rounded-[40px] border border-white/5 text-slate-300 leading-relaxed text-lg font-medium shadow-inner relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-4 opacity-5">
                                         <FileText className="w-24 h-24" />
                                     </div>
-                                    {selectedStage.content || "Sin contenido de texto."}
+                                    {selectedStage.content ? (
+                                        <div 
+                                            className="rich-content"
+                                            dangerouslySetInnerHTML={{ __html: selectedStage.content }} 
+                                        />
+                                    ) : (
+                                        <p className="text-slate-500 italic">Sin contenido de texto.</p>
+                                    )}
 
                                     {selectedStage.challenge_description && (
                                         <div className="mt-10 p-8 bg-blue-500/5 rounded-3xl border border-blue-500/10">

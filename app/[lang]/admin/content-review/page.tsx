@@ -18,16 +18,24 @@ import {
 import { useParams } from 'next/navigation';
 import { contentReview, categories as categoriesApi } from '@/lib/api';
 
-interface PendingStage {
+interface PendingTopic {
     id: number;
     title: string;
     description: string | null;
     category_id: number;
     professor_id: number | null;
+    professor_name: string | null;
     approval_status: string;
     submitted_at: string | null;
     media_url: string | null;
     media_type: string | null;
+    stages?: Array<{
+        id: number;
+        title: string;
+        order: number;
+        media_url?: string | null;
+        media_type?: string | null;
+    }>;
 }
 
 interface CategoryMap {
@@ -38,14 +46,40 @@ export default function ContentReviewDashboard() {
     const t = useTranslations('ContentReview');
     const { lang } = useParams();
     const [searchQuery, setSearchQuery] = useState('');
-    const [pendingTopics, setPendingTopics] = useState<PendingStage[]>([]);
+    const [pendingTopics, setPendingTopics] = useState<PendingTopic[]>([]);
     const [categoryNames, setCategoryNames] = useState<CategoryMap>({});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
     useEffect(() => {
         loadPendingContent();
     }, []);
+
+    // Close filters dropdown when clicking outside
+    useEffect(() => {
+        if (!showFilters) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            // Only close if click is outside the filter container
+            if (!target.closest('.filter-dropdown-container')) {
+                console.log('Closing filter dropdown - click outside');
+                setShowFilters(false);
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            document.addEventListener('mousedown', handleClickOutside);
+        }, 100);
+
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showFilters]);
 
     const loadPendingContent = async () => {
         setIsLoading(true);
@@ -56,7 +90,9 @@ export default function ContentReviewDashboard() {
                 categoriesApi.getAll().catch(() => []),
             ]);
 
+            console.log('Pending topics received:', stages);
             setPendingTopics(stages);
+            console.log('Pending topics loaded:', stages.length, 'Category IDs:', stages.map((s: any) => s.category_id));
 
             // Build category name map
             const catMap: CategoryMap = {};
@@ -66,6 +102,7 @@ export default function ContentReviewDashboard() {
                 });
             }
             setCategoryNames(catMap);
+            console.log('Categories loaded:', catMap);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -73,10 +110,15 @@ export default function ContentReviewDashboard() {
         }
     };
 
-    const filteredTopics = pendingTopics.filter(topic =>
-        topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (topic.description || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredTopics = pendingTopics.filter(topic => {
+        const matchesSearch = topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (topic.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === null || topic.category_id === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    // Debug logs
+    console.log('Filter State:', { selectedCategory, pendingTopicsCount: pendingTopics.length, filteredCount: filteredTopics.length });
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return '';
@@ -127,10 +169,24 @@ export default function ContentReviewDashboard() {
                             </p>
                         </div>
                         <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                            <button className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20">
+                            <button 
+                                onClick={() => setViewMode('grid')}
+                                className={`p-2.5 rounded-xl transition-all ${
+                                    viewMode === 'grid' 
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                                        : 'text-slate-500 hover:text-white'
+                                }`}
+                            >
                                 <LayoutGrid className="w-5 h-5" />
                             </button>
-                            <button className="p-2.5 text-slate-500 hover:text-white transition-colors">
+                            <button 
+                                onClick={() => setViewMode('list')}
+                                className={`p-2.5 rounded-xl transition-all ${
+                                    viewMode === 'list' 
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                                        : 'text-slate-500 hover:text-white'
+                                }`}
+                            >
                                 <List className="w-5 h-5" />
                             </button>
                         </div>
@@ -149,10 +205,74 @@ export default function ContentReviewDashboard() {
                             className="w-full bg-[#111827]/80 border border-white/5 rounded-2xl py-5 pl-16 pr-6 text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/30 transition-all font-semibold"
                         />
                     </div>
-                    <button className="flex items-center justify-center gap-3 bg-[#111827]/80 border border-white/5 px-8 py-5 rounded-2xl font-black text-slate-400 hover:text-white hover:bg-[#1E293B] transition-all">
-                        <Filter className="w-5 h-5" />
-                        <span>Filtros</span>
-                    </button>
+                    <div className="relative filter-dropdown-container">
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('Toggle filters, current state:', showFilters);
+                                setShowFilters(!showFilters);
+                            }}
+                            className={`flex items-center justify-center gap-3 bg-[#111827]/80 border px-8 py-5 rounded-2xl font-black transition-all ${
+                                showFilters || selectedCategory !== null
+                                    ? 'border-blue-500/30 text-blue-400 hover:bg-[#1E293B]'
+                                    : 'border-white/5 text-slate-400 hover:text-white hover:bg-[#1E293B]'
+                            }`}
+                        >
+                            <Filter className="w-5 h-5" />
+                            <span>Filtros</span>
+                            {selectedCategory !== null && (
+                                <span className="ml-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">1</span>
+                            )}
+                        </button>
+                        
+                        {showFilters && (
+                            <div className="absolute top-full mt-2 right-0 bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-50 min-w-[250px] p-3">
+                                <div className="space-y-2">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-3 py-1">
+                                        Categoría ({Object.keys(categoryNames).length} disponibles)
+                                    </p>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log('Clearing category filter');
+                                            setSelectedCategory(null);
+                                            setShowFilters(false);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            selectedCategory === null
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-slate-300 hover:bg-white/5'
+                                        }`}
+                                    >
+                                        Todas las categorías
+                                    </button>
+                                    {Object.keys(categoryNames).length === 0 && (
+                                        <div className="px-3 py-4 text-center text-slate-500 text-xs">
+                                            No hay categorías disponibles
+                                        </div>
+                                    )}
+                                    {Object.entries(categoryNames).map(([id, name]) => (
+                                        <button
+                                            key={id}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                console.log('Selected category:', id, name);
+                                                setSelectedCategory(Number(id));
+                                                setShowFilters(false);
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                selectedCategory === Number(id)
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'text-slate-300 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Loading State */}
@@ -180,18 +300,27 @@ export default function ContentReviewDashboard() {
                     </div>
                 )}
 
-                {/* Content Grid */}
+                {/* Content Grid/List */}
                 {!isLoading && !error && (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className={viewMode === 'grid' 
+                            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" 
+                            : "flex flex-col gap-4"
+                        }>
                             {filteredTopics.map((topic) => (
                                 <Link
                                     key={topic.id}
                                     href={`/${lang}/admin/content-review/${topic.id}`}
-                                    className="group relative bg-[#0F172A] rounded-[36px] overflow-hidden border border-white/5 hover:border-blue-500/30 transition-all hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] hover:-translate-y-2 duration-500"
+                                    className={`group relative bg-[#0F172A] overflow-hidden border border-white/5 hover:border-blue-500/30 transition-all hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] duration-500 ${
+                                        viewMode === 'grid'
+                                            ? 'rounded-[36px] hover:-translate-y-2'
+                                            : 'rounded-2xl flex flex-row items-center hover:translate-x-2'
+                                    }`}
                                 >
                                     {/* Thumbnail */}
-                                    <div className="aspect-[4/3] relative overflow-hidden">
+                                    <div className={`relative overflow-hidden ${
+                                        viewMode === 'grid' ? 'aspect-[4/3]' : 'w-48 h-32 flex-shrink-0'
+                                    }`}>
                                         <img
                                             src={topic.media_url || getThumbnail(topic.category_id)}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
@@ -212,7 +341,7 @@ export default function ContentReviewDashboard() {
                                     </div>
 
                                     {/* Info */}
-                                    <div className="p-8 space-y-4">
+                                    <div className={viewMode === 'grid' ? 'p-8 space-y-4' : 'p-6 flex-1 space-y-3'}>
                                         <div className="space-y-1">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">
                                                 {categoryNames[topic.category_id] || `Categoría ${topic.category_id}`}
@@ -226,7 +355,7 @@ export default function ContentReviewDashboard() {
                                             <div className="flex items-center gap-2">
                                                 <div className="w-6 h-6 rounded-full bg-slate-800 border border-white/10" />
                                                 <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 transition-colors">
-                                                    Profesor #{topic.professor_id || '?'}
+                                                    {topic.professor_name || `Profesor #${topic.professor_id || '?'}`}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-600">

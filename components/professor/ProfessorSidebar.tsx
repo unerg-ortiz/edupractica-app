@@ -66,7 +66,10 @@ export default function ProfessorSidebar() {
                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
                         <span className="text-white font-black text-xl">E</span>
                     </div>
-                    <span className="text-white font-black text-2xl tracking-tight">EduPráctica</span>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-white font-black text-2xl tracking-tight">EduPráctica</span>
+                        <span className="text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-md shadow-lg shadow-orange-500/30 w-fit">BETA</span>
+                    </div>
                 </div>
             </div>
 

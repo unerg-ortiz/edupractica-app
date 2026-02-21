@@ -69,12 +69,15 @@ export default function AnalyticsPage() {
     
     const [exportingPDF, setExportingPDF] = useState(false);
     const [exportingExcel, setExportingExcel] = useState(false);
+    const [topicButtonRect, setTopicButtonRect] = useState<DOMRect | null>(null);
+    const [stageButtonRect, setStageButtonRect] = useState<DOMRect | null>(null);
 
     // Load professor's topics
     useEffect(() => {
         const fetchTopics = async () => {
             try {
                 const result = await topicsApi.getMyTopics(0, 100);
+                console.log('Topics loaded:', result);
                 setTopics(result);
             } catch (err) {
                 console.error('Error fetching topics:', err);
@@ -121,13 +124,47 @@ export default function AnalyticsPage() {
 
     // Close dropdowns when clicking outside
     useEffect(() => {
-        const handleClickOutside = () => {
+        console.log('Dropdown state changed - Topic:', showTopicDropdown, 'Stage:', showStageDropdown);
+        
+        if (!showTopicDropdown && !showStageDropdown) return;
+        
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            // Only close if click is outside dropdown containers
+            if (!target.closest('.dropdown-container')) {
+                console.log('Clicking outside, closing dropdowns');
+                setShowTopicDropdown(false);
+                setShowStageDropdown(false);
+            }
+        };
+        
+        // Add small delay to avoid capturing the same click that opened the dropdown
+        const timeoutId = setTimeout(() => {
+            console.log('Adding mousedown listener');
+            document.addEventListener('mousedown', handleClickOutside);
+        }, 100);
+        
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showTopicDropdown, showStageDropdown]);
+
+    // Close dropdowns on scroll or resize
+    useEffect(() => {
+        const handleScrollOrResize = () => {
             setShowTopicDropdown(false);
             setShowStageDropdown(false);
         };
+
         if (showTopicDropdown || showStageDropdown) {
-            document.addEventListener('click', handleClickOutside);
-            return () => document.removeEventListener('click', handleClickOutside);
+            window.addEventListener('scroll', handleScrollOrResize, true);
+            window.addEventListener('resize', handleScrollOrResize);
+            
+            return () => {
+                window.removeEventListener('scroll', handleScrollOrResize, true);
+                window.removeEventListener('resize', handleScrollOrResize);
+            };
         }
     }, [showTopicDropdown, showStageDropdown]);
 
@@ -206,10 +243,13 @@ export default function AnalyticsPage() {
                 {/* Filters */}
                 <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                     {/* Topic Filter */}
-                    <div className="relative">
+                    <div className="relative dropdown-container">
                         <button 
                             onClick={(e) => {
                                 e.stopPropagation();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setTopicButtonRect(rect);
+                                console.log('Topic button clicked. Current state:', showTopicDropdown, 'Topics count:', topics.length);
                                 setShowTopicDropdown(!showTopicDropdown);
                                 setShowStageDropdown(false);
                             }}
@@ -233,12 +273,22 @@ export default function AnalyticsPage() {
                             )}
                             <ChevronDown className="w-4 h-4 ml-1" />
                         </button>
-                        {showTopicDropdown && topics.length > 0 && (
-                            <div className="absolute top-full mt-2 bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+                        {showTopicDropdown && topics.length > 0 && topicButtonRect && (
+                            <div 
+                                className="fixed bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-[9999] min-w-[200px] max-w-[calc(100vw-3rem)] max-h-[300px] overflow-y-auto"
+                                style={{
+                                    top: `${topicButtonRect.bottom + 8}px`,
+                                    left: `${topicButtonRect.left}px`,
+                                    minWidth: `${topicButtonRect.width}px`
+                                }}
+                                onMouseEnter={() => console.log('Dropdown is visible')}
+                            >
                                 {topics.map(topic => (
                                     <button
                                         key={topic.id}
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log('Topic selected:', topic.title);
                                             setSelectedTopicId(topic.id);
                                             setSelectedStageId(null);
                                             setShowTopicDropdown(false);
@@ -254,10 +304,12 @@ export default function AnalyticsPage() {
 
                     {/* Stage Filter */}
                     {selectedTopicId && topics.find(t => t.id === selectedTopicId)?.stages && (
-                        <div className="relative">
+                        <div className="relative dropdown-container">
                             <button 
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setStageButtonRect(rect);
                                     setShowStageDropdown(!showStageDropdown);
                                     setShowTopicDropdown(false);
                                 }}
@@ -280,12 +332,20 @@ export default function AnalyticsPage() {
                                 )}
                                 <ChevronDown className="w-4 h-4 ml-1" />
                             </button>
-                            {showStageDropdown && (
-                                <div className="absolute top-full mt-2 bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+                            {showStageDropdown && stageButtonRect && (
+                                <div 
+                                    className="fixed bg-[#1E293B] border border-white/10 rounded-xl shadow-2xl z-[9999] min-w-[200px] max-w-[calc(100vw-3rem)] max-h-[300px] overflow-y-auto"
+                                    style={{
+                                        top: `${stageButtonRect.bottom + 8}px`,
+                                        left: `${stageButtonRect.left}px`,
+                                        minWidth: `${stageButtonRect.width}px`
+                                    }}
+                                >
                                     {topics.find(t => t.id === selectedTopicId)?.stages?.map(stage => (
                                         <button
                                             key={stage.id}
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 setSelectedStageId(stage.id);
                                                 setShowStageDropdown(false);
                                             }}
